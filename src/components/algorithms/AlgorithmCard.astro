@@ -1,0 +1,23 @@
+---
+// 构建期读取资源，浏览器只接收本张卡片的模板，不打包代码渲染引擎。
+const codeResources = import.meta.glob<{ default: Record<string, string> }>("./code/*.json", { eager: true });
+const codeSources = import.meta.glob<{ codes: { id: string; source: string }[] }>("../../../public/algorithm-cards/problems/*-code.js", { eager: true });
+interface Props {
+	id: string;
+	articleLevel?: boolean;
+	compact?: boolean;
+}
+
+const { id, articleLevel = false, compact = true } = Astro.props;
+const codes = codeSources[`../../../public/algorithm-cards/problems/${id}-code.js`]?.codes ?? [];
+const codeHtml = codeResources[`./code/${id}.json`]?.default;
+// 329 是用户原始的独立卡片，代码包含在其模板中；保留已有接入能力。
+if (id !== "329" && (!codes.length || !codeHtml)) throw new Error(`算法题 ${id} 缺少代码资源，请执行代码构建脚本。`);
+const base = import.meta.env.BASE_URL.replace(/\/?$/, "/");
+---
+
+<algorithm-card problem={id} article-level={articleLevel ? "" : undefined} compact={compact ? "" : undefined}>
+    {codeHtml && <template data-code-styles><style is:inline set:html={codeHtml.styles} /></template>}
+    {codes.map(code => <template data-language={code.id}><Fragment set:html={codeHtml?.[code.id as keyof typeof codeHtml]} /></template>)}
+</algorithm-card>
+<script is:inline type="module" src={`${base}algorithm-cards/algorithm-card.js`}></script>

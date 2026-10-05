@@ -1,0 +1,11 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+const ids=['139','152','32'],modules=await Promise.all(ids.map(id=>import(`../public/algorithm-cards/problems/${id}.js`))),resources=await Promise.all(ids.map(id=>import(`../public/algorithm-cards/problems/${id}-code.js`)));
+const solves=resources.map(({codes})=>new Function(`${codes[1].source};return ${codes[0].method};`)());
+test('word break agrees with breadth-first reachable prefix positions',()=>{
+ const wordDict=['a','ab','ba','bb'];for(let n=1;n<=7;n++)for(let mask=0;mask<2**n;mask++){const s=Array.from({length:n},(_,i)=>mask&(1<<i)?'a':'b').join(''),seen=new Set([0]),queue=[0];for(let i=0;i<queue.length;i++)for(const word of wordDict)if(s.startsWith(word,queue[i])&&!seen.has(queue[i]+word.length)){seen.add(queue[i]+word.length);queue.push(queue[i]+word.length);}const expected=seen.has(n);assert.equal(solves[0](s,wordDict),expected);assert.equal(modules[0].buildTrace({s,wordDict}).at(-1).answer,expected);}
+});
+test('product and bracket lengths agree with every contiguous subarray',()=>{
+ let seed=152;const random=n=>((seed=(seed*1664525+1013904223)>>>0)%n);for(let trial=0;trial<500;trial++){const nums=Array.from({length:1+random(9)},()=>random(7)-3);let product=-Infinity;for(let start=0;start<nums.length;start++){let value=1;for(let end=start;end<nums.length;end++){value*=nums[end];product=Math.max(product,value);}}assert.equal(solves[1](nums),product);assert.equal(modules[1].buildTrace({nums}).at(-1).answer,product);
+ const s=Array.from({length:random(14)},()=>random(2)?'(':')').join('');let longest=0;for(let start=0;start<s.length;start++){let balance=0;for(let end=start;end<s.length;end++){balance+=s[end]==='('?1:-1;if(balance<0)break;if(balance===0)longest=Math.max(longest,end-start+1);}}assert.equal(solves[2](s),longest);assert.equal(modules[2].buildTrace({s}).at(-1).answer,longest);}
+});
+test('all four languages map each phase and word lookup short circuit is visible',()=>{for(let i=0;i<ids.length;i++)for(const e of modules[i].examples)for(const s of modules[i].buildTrace(e))for(const c of resources[i].codes)assert.ok(c.source.split('\n')[c.lines[s.line]-1]?.trim());const trace=modules[0].buildTrace(modules[0].examples[0]);assert.ok(trace.some(s=>s.line==='check'&&s.word===null&&s.text.includes('短路')));});

@@ -22,9 +22,12 @@ const className = Astro.props.class;
         <slot></slot>
     </div>
     {isCollapsed && <div class="expand-btn px-4 -mb-2">
-        <button class="btn-plain rounded-lg w-full h-9">
-            <div class="text-[var(--primary)] flex items-center justify-center gap-2 -translate-x-2">
+        <button type="button" class="btn-plain rounded-lg w-full h-9" aria-expanded="false" aria-controls={id}>
+            <div data-expand-label class="text-[var(--primary)] flex items-center justify-center gap-2 -translate-x-2">
                 <Icon name="material-symbols:more-horiz" class="text-[1.75rem]"></Icon> {i18n(I18nKey.more)}
+            </div>
+            <div data-collapse-label class="hidden text-[var(--primary)] flex items-center justify-center gap-2 -translate-x-2">
+                <Icon name="material-symbols:keyboard-arrow-up" class="text-[1.75rem]"></Icon> 收起
             </div>
         </button>
     </div>}
@@ -44,12 +47,17 @@ const className = Astro.props.class;
             if (this.dataset.isCollapsed !== "true")
                 return;
 
-            const id = this.dataset.id;
-            const btn = this.querySelector('.expand-btn');
-            const wrapper = this.querySelector(`#${id}`)
-            btn!.addEventListener('click', () => {
-                wrapper!.classList.remove('collapsed');
-                btn!.classList.add('hidden');
+            const btn = this.querySelector('.expand-btn button');
+            const wrapper = this.querySelector('.collapse-wrapper');
+            const expandLabel = this.querySelector('[data-expand-label]');
+            const collapseLabel = this.querySelector('[data-collapse-label]');
+            if (!btn || !wrapper || !expandLabel || !collapseLabel) return;
+
+            btn.addEventListener('click', () => {
+                const collapsed = wrapper.classList.toggle('collapsed');
+                btn.setAttribute('aria-expanded', String(!collapsed));
+                expandLabel.classList.toggle('hidden', !collapsed);
+                collapseLabel.classList.toggle('hidden', collapsed);
             })
         }
     }

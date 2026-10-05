@@ -1,0 +1,41 @@
+---
+title: "MDX 组件预览"
+published: 2026-10-04
+description: "从 Firefly 迁移的正文组件与算法卡片。"
+tags: [MDX]
+category: Examples
+draft: true
+---
+
+import { Badge, Steps, StepItem, Timeline, TimelineItem, TabGroup, AlgorithmCard } from "@components/fuwari-mdx";
+
+## 标签
+
+<Badge>主题色</Badge> <Badge type="tip">提示</Badge> <Badge type="warning">注意</Badge>
+
+## 步骤条
+
+<Steps>
+  <StepItem title="查询哈希表" icon="code">寻找 target - num。</StepItem>
+  <StepItem title="记录下标" type="tip">未找到时，存入当前数字。</StepItem>
+</Steps>
+
+## 时间线
+
+<Timeline>
+  <TimelineItem date="2026-10-04" title="开始学习" icon="book">阅读题目。</TimelineItem>
+  <TimelineItem title="单步跟踪" type="tip">观察字典变化。</TimelineItem>
+</Timeline>
+
+## 代码标签页
+
+<TabGroup labels={["Python", "说明"]} client:load>
+  <pre><code>seen = &#123;&#125;</code></pre>
+  <p>字典保存数字及其下标。</p>
+</TabGroup>
+
+## 两张独立卡片
+
+<AlgorithmCard id="1" />
+
+<AlgorithmCard id="1" />

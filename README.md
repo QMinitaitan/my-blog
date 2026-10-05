@@ -6,6 +6,8 @@
 
 A static blog template built with [Astro](https://astro.build).
 
+本项目扩展说明：[分层架构与目录索引](docs/architecture.md) · [清理记录](docs/cleanup-2026-10-05.md)。
+
 [**🖥️ Live Demo (Vercel)**](https://fuwari.vercel.app)
 
 ![Preview Image](https://raw.githubusercontent.com/saicaca/resource/main/fuwari/home.png)

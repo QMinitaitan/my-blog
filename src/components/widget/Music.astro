@@ -1,0 +1,25 @@
+---
+import WidgetLayout from "./WidgetLayout.astro";
+import MusicManager from "../music/MusicManager.astro";
+import MusicPlayer from "../music/MusicPlayer.astro";
+import MusicPlayerView from "../music/MusicPlayerView.astro";
+import { musicPlayerConfig } from "../../config/musicConfig";
+import { musicText } from "../../utils/music-i18n";
+import type { MusicPlayerConfig } from "../../types/musicConfig";
+
+interface Props {
+	class?: string;
+	style?: string;
+	config?: MusicPlayerConfig;
+}
+const { class: className, style, config = musicPlayerConfig } = Astro.props;
+---
+{config.showInSidebar && (
+	<>
+		<MusicManager config={config} />
+		<WidgetLayout id="music-widget-layout" name={musicText.music} class={className} style={style}>
+			<MusicPlayer id="music-widget" config={config} />
+		</WidgetLayout>
+		<MusicPlayerView config={config} />
+	</>
+)}

@@ -1,0 +1,104 @@
+---
+// 将 public 中的独立动画嵌入 MDX；height 是未接入自动高度时的备用高度。
+interface Props {
+	src: string;
+	title: string;
+	height?: number;
+}
+
+const { src, title, height = 900 } = Astro.props;
+if (
+	!src.startsWith("/visualizations/") ||
+	src.includes("..") ||
+	src.includes("\\")
+) {
+	throw new Error(
+		"Visualization 的 src 必须是 /visualizations/ 下的本地路径。",
+	);
+}
+const frameHeight = Number.isFinite(height)
+	? Math.max(320, Math.min(4000, height))
+	: 900;
+---
+
+<firefly-visualization class="not-prose">
+	<div class="visualization-header text-90">
+		<strong>{title}</strong>
+		<a href={src} target="_blank" rel="noopener noreferrer" data-no-swup>独立打开 ↗</a>
+	</div>
+	<iframe
+		src={src}
+		title={title}
+		loading="lazy"
+		sandbox="allow-scripts"
+		referrerpolicy="no-referrer"
+		style={`height: ${frameHeight}px`}
+	></iframe>
+	<noscript>动画需要启用 JavaScript。也可以通过上方链接独立打开。</noscript>
+</firefly-visualization>
+
+<script>
+	// custom element 在 Swup 插入/移除文章时会自动连接/清理，支持一篇文章放多个动画。
+	class FireflyVisualization extends HTMLElement {
+		private cleanup?: () => void;
+
+		connectedCallback() {
+			this.cleanup?.();
+			const frame = this.querySelector("iframe");
+			if (!frame) return;
+			const controller = new AbortController();
+			const sendTheme = () => {
+				// 沙箱页面的来源是 opaque origin，只传主题，不传文章或用户数据。
+				frame.contentWindow?.postMessage({
+					type: "firefly:theme",
+					dark: document.documentElement.classList.contains("dark"),
+				}, "*");
+			};
+			window.addEventListener("message", (event: MessageEvent) => {
+				if (event.source !== frame.contentWindow || !event.data || typeof event.data !== "object") return;
+				if (event.data.type === "firefly:ready") sendTheme();
+				if (event.data.type === "firefly:resize" && typeof event.data.height === "number" && Number.isFinite(event.data.height)) {
+					frame.style.height = `${Math.max(320, Math.min(4000, Math.ceil(event.data.height)))}px`;
+				}
+			}, { signal: controller.signal });
+			frame.addEventListener("load", sendTheme, { signal: controller.signal });
+			const observer = new MutationObserver(sendTheme);
+			observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+			sendTheme();
+			this.cleanup = () => {
+				controller.abort();
+				observer.disconnect();
+			};
+		}
+
+		disconnectedCallback() {
+			this.cleanup?.();
+			this.cleanup = undefined;
+		}
+	}
+	if (!customElements.get("firefly-visualization")) {
+		customElements.define("firefly-visualization", FireflyVisualization);
+	}
+</script>
+
+<style>
+	firefly-visualization {
+		display: block;
+		margin: 1.5rem 0;
+		overflow: hidden;
+		border: 1px solid var(--line-divider);
+		border-radius: var(--radius-large);
+		background: var(--card-bg);
+	}
+	.visualization-header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.85rem 1rem;
+		border-bottom: 1px solid var(--line-divider);
+	}
+	.visualization-header a { color: var(--btn-content); font-size: 0.875rem; }
+	iframe { display: block; width: 100%; border: 0; }
+</style>

@@ -29,3 +29,10 @@ yarn.lock
 # ide
 .idea
 *.iml
+
+# local browser diagnostics and generated work products
+.playwright-cli/
+output/*
+!output/README.md
+!output/statement-examples-raw.json
+!output/hot100-coverage.json

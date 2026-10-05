@@ -1,0 +1,44 @@
+---
+title: "代码块样式预览"
+published: 2026-10-05
+description: "正文与算法卡片共用的 Expressive Code 样式。"
+tags: [MDX]
+category: Examples
+draft: true
+---
+
+import { AlgorithmCard } from "@components/fuwari-mdx";
+
+## 正文代码
+
+```python
+def two_sum(nums, target):
+    seen = {}
+    for i, num in enumerate(nums):
+        need = target - num
+        if need in seen:
+            return [seen[need], i]
+        seen[num] = i
+```
+
+## 文件标签与行标记
+
+```python title="solution.py" {5-6}
+def two_sum(nums, target):
+    seen = {}
+    for i, num in enumerate(nums):
+        need = target - num
+        if need in seen:
+            return [seen[need], i]
+        seen[num] = i
+```
+
+## 终端
+
+```bash
+python solution.py
+```
+
+## 动态代码
+
+<AlgorithmCard id="1" />

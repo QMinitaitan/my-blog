@@ -1,0 +1,7 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {examples,buildTrace} from '../public/algorithm-cards/problems/207.js';import {codes} from '../public/algorithm-cards/problems/207-code.js';
+const solve=new Function(`${codes[1].source};return canFinish;`)();
+test('course scheduling agrees with exhaustive ordering of small graphs',()=>{
+ function permutations(a){if(!a.length)return [[]];return a.flatMap((v,i)=>permutations(a.filter((_,j)=>i!==j)).map(rest=>[v,...rest]));}
+ let seed=207;const random=n=>((seed=(seed*1664525+1013904223)>>>0)%n);for(let trial=0;trial<300;trial++){const numCourses=1+random(5),prerequisites=[];for(let a=0;a<numCourses;a++)for(let b=0;b<numCourses;b++)if(random(5)===0)prerequisites.push([a,b]);const expected=permutations(Array.from({length:numCourses},(_,i)=>i)).some(order=>prerequisites.every(([a,b])=>order.indexOf(b)<order.indexOf(a)));assert.equal(solve(numCourses,prerequisites),expected);assert.equal(buildTrace({numCourses,prerequisites}).at(-1).answer,expected);}
+});
+test('all stages map to four languages and graph snapshots remain independent',()=>{for(const e of examples)for(const s of buildTrace(e))for(const c of codes)assert.ok(c.source.split('\n')[c.lines[s.line]-1]?.trim());const trace=buildTrace(examples[0]);assert.deepEqual(trace[0].edges,[]);assert.equal(trace[0].completed,null);assert.equal(trace[0].queue,null);assert.deepEqual(trace.at(-1).completedNodes,[0,1,2]);});
