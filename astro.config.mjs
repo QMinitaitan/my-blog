@@ -27,7 +27,7 @@ import { codeStyleOverrides } from "./src/config/code-style.mjs";
 
 // https://astro.build/config
 export default defineConfig({
-	site: "https://fuwari.vercel.app/",
+	site: "https://my-blog-psi-silk-23.vercel.app/",
 	base: "/",
 	trailingSlash: "always",
 	integrations: [
