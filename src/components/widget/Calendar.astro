@@ -1,6 +1,6 @@
 ---
 // Adapted from CuteLeaf/Firefly Calendar.astro (MIT); see docs/firefly-calendar-LICENSE.txt.
-import { getCollection } from "astro:content";
+import { getSortedPosts } from "../../utils/content-utils";
 import { Icon } from "astro-icon/components";
 import WidgetLayout from "./WidgetLayout.astro";
 import { siteConfig } from "../../config";
@@ -22,7 +22,7 @@ const weekDays = Array.from({ length: 7 }, (_, day) =>
 const isChinese = currentLang.startsWith("zh");
 const yearText = isChinese ? "年" : "Year";
 const heatmapWeekTemplate = isChinese ? "{month}月第{week}周，{count}篇文章" : "Week {week} of month {month}, {count} posts";
-const posts = await getCollection("posts", ({ data }) => !data.draft);
+const posts = await getSortedPosts();
 const initialPosts = posts.map(post => ({
     id: post.slug,
     title: post.data.title,
@@ -620,3 +620,4 @@ const postUrlPrefix = url("/posts/");
     box-shadow: 0 0 1px 1.5px var(--primary, oklch(0.55 0.15 250));
   }
 </style>
+
