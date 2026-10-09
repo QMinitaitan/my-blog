@@ -27,6 +27,18 @@ const { compact = true } = Astro.props;
   :global(algorithm-card[data-reveal-active]) ~ .problem-divider::before {
     transform: scaleY(.25);
   }
+  .problem-divider[data-collapse-active] { cursor: pointer; outline: none; }
+  .problem-divider[data-collapse-active]::after {
+    content: "";
+    position: absolute;
+    inset: -8px 0;
+  }
+  .problem-divider[data-collapse-active]:is(:hover, :focus-visible)::before {
+    transform: scaleY(.25);
+  }
+  .problem-divider[data-collapse-active]:focus-visible::before {
+    box-shadow: 0 0 0 2px #a78bfa55;
+  }
   /* 收起时：按钮底边到 4px 线中心 = 10px 留白 + 2px 半线宽。 */
   :global(algorithm-card[article-level][compact][data-solution-open="false"]) ~ .problem-divider.compact {
     margin-block-start: 10px;
