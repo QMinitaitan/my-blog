@@ -1,4 +1,5 @@
 import { sampleLayoutStyles } from "./sample-layout.js";
+import { mountProblemDivider } from './problem-divider.js';
 import baseTemplate from "./base-template.js";
 import { mountDropdown } from "./dropdown.js";
 import { decorateCodes } from "./code-ideas.js";
@@ -400,11 +401,18 @@ export function mountCard(
   });
   listen(reveal, "focus", syncReveal);
   listen(reveal, "blur", syncReveal);
+  const divider = mountProblemDivider(root.host, signal, () => {
+    if ($("solution").hidden) return;
+    reveal.click();
+    reveal.focus({ preventScroll: true });
+    root.host.scrollIntoView({ block: "start", behavior: "instant" });
+  });
   listen(reveal, "click", () => {
     const opening = $("solution").hidden;
     $("solution").hidden = !opening;
     $("reveal").setAttribute("aria-expanded", String(opening));
     root.host.setAttribute("data-solution-open", String(opening));
+    divider.setOpen(opening);
     $("reveal").textContent = opening ? "收起解答" : "展开解答";
     if (opening) switchView("code");
     else {
