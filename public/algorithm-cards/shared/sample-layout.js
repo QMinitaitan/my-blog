@@ -44,8 +44,11 @@ export function reserveSample(root, bounds, { rows = {}, texts = {}, grids = {} 
    const count = typeof config === 'number' ? config : typeof config === 'object' ? config.count : bounds.rows[config] ?? 0;
    const rowHeight = typeof config === 'object' ? config.rowHeight ?? 88 : 88;
    const extraHeight = typeof config === 'object' ? config.extraHeight ?? 0 : 0;
+   const textHeight = typeof config === 'object' ? Math.ceil((config.textCharacters ?? 0) * 16 / width) * 24 : 0;
+   node.style.lineHeight = "24px";
+   node.style.overflowWrap = "anywhere";
    const perLine = Math.max(1, Math.floor((width + 10) / (cell + 10)));
-   node.style.minHeight = `${Math.max(1, Math.ceil(count / perLine)) * rowHeight - 10 + extraHeight}px`;
+   node.style.minHeight = `${Math.max(1, Math.ceil(count / perLine)) * rowHeight - 10 + extraHeight + textHeight}px`;
   }
   for (const [id, config] of Object.entries(texts)) {
    const node = root.getElementById(id);
