@@ -18,3 +18,13 @@ test('building a tree keeps existing node anchors as children are added', () => 
  assert.equal(layout.height, 140);
  assert.equal(layout.width, 224);
 });
+import { listLayout } from '../public/algorithm-cards/shared/sample-layout.js';
+test('deleting a list node preserves surviving identities and bounds', () => {
+ const a={id:'A',val:1,next:'B'}, b={id:'B',val:2,next:'C'}, c={id:'C',val:3,next:null};
+ const layout=listLayout([{nodes:[a,b,c]},{nodes:[a,c]}]);
+ assert.equal(layout.positions.get('C'),270);
+ assert.equal(layout.width,345);
+});
+test('one-dimensional dp snapshots do not become matrix layouts', () => {
+ assert.deepEqual(sampleBounds([{values:[0,1],dp:[0,1]}]).grids.dp.rows,[]);
+});
