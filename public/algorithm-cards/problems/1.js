@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample } from "../shared/sample-layout.js";
 import { mountStatementExamples } from "../shared/statement-examples.js";
 import { cardTemplate, mountCard, escapeHtml } from "../shared/card-ui.js";
 import { problemBadges } from "./meta.js";
@@ -112,6 +113,10 @@ export function mount(root, signal) {
     codes,
     examples,
     buildTrace,
+    prepareAnimation(root, steps, example) {
+      const bounds = sampleBounds([...steps, { values: example.nums.slice(0, 8) }]);
+      return reserveSample(root, bounds, { rows: { array: Math.min(8, example.nums.length) + (example.nums.length > 8 ? 3 : 0), "hash-map": "seen" }, texts: { stage: "text" } });
+    },
     getVariables,
     renderAnimation(root, step, example) {
       const indices = visibleIndices(example.nums.length, step);

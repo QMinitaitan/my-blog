@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -25,7 +26,7 @@ export function matrixCard({
 			'<p id="sample-note" class="hash-caption"></p><div id="grid" style="overflow:auto"></div><p id="dp-title" class="hash-caption"></p><div id="dp-grid" style="overflow:auto"></div><p id="result" class="hash-caption"></p><p class="legend">紫框与“当前”：本次操作　蓝框与“依赖”：读取的状态　绿色与“已处理”：已访问格</p>',
 	});
 	const grid = (values, s) =>
-		`${s.matrixRowIndices ? "<p>大网格仅显示当前相关行列；跳号处有省略，坐标保持原编号。</p>" : ""}<table style="border-collapse:separate;border-spacing:5px;margin:auto"><thead><tr><th></th>${Array.from({ length: Math.max(0, ...values.map((row) => row.length)) }, (_, c) => `<th>${s.matrixColumnIndices?.[c] ?? c} ${escapeHtml(s.columnLabels?.[s.matrixColumnIndices?.[c] ?? c] ?? "")}</th>`).join("")}</tr></thead><tbody>${values
+		`${s.matrixRowIndices ? "<p>大网格仅显示当前相关行列；跳号处有省略，坐标保持原编号。</p>" : ""}<table style="border-collapse:separate;border-spacing:5px;margin:0"><thead><tr><th></th>${Array.from({ length: Math.max(0, ...values.map((row) => row.length)) }, (_, c) => `<th>${s.matrixColumnIndices?.[c] ?? c} ${escapeHtml(s.columnLabels?.[s.matrixColumnIndices?.[c] ?? c] ?? "")}</th>`).join("")}</tr></thead><tbody>${values
 			.map((row, ri) => {
 				const r = s.matrixRowIndices?.[ri] ?? ri;
 				return `<tr><th>${r} ${escapeHtml(s.rowLabels?.[r] ?? "")}</th>${row
@@ -49,6 +50,9 @@ export function matrixCard({
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					return reserveSample(root, sampleBounds(steps), { grids: { grid: "matrix", "dp-grid": "dp" }, texts: { stage: "text", result: "answer", "dp-title": 70 } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.matrix ?? e.grid ?? e.board ?? e.input ?? [e.m, e.n])}${e.target !== undefined ? ` · target=${e.target}` : ""}`,
 				getVariables: (s) =>
