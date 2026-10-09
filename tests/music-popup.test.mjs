@@ -10,3 +10,9 @@ test('pointer leave closes after clicking, keyboard focus keeps popup open',()=>
  document.dispatchEvent(new Event('keydown'));host.dispatchEvent(new Event('focusin'));assert.equal(host.dataset.open,'true');
  host.dispatchEvent(new Event('mouseleave'));assert.equal(host.dataset.open,'true');
 });
+test('touch can open the popup and an outside tap closes it',()=>{
+ const host=new Surface(),trigger=new Surface(),document=new Surface();host.contains=target=>target===host;
+ mountMusicPopup(host,trigger,document);
+ const inside=new Event('pointerdown');Object.defineProperties(inside,{pointerType:{value:'touch'},target:{value:host}});document.dispatchEvent(inside);assert.equal(host.dataset.open,'true');
+ const outside=new Event('pointerdown');Object.defineProperty(outside,'pointerType',{value:'touch'});document.dispatchEvent(outside);assert.equal(host.dataset.open,'false');
+});
