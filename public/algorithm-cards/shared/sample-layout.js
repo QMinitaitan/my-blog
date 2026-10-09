@@ -6,6 +6,7 @@ export function sampleBounds(steps) {
    if (!Array.isArray(step[name])) continue;
    const grid = bounds.grids[name] ??= { rows: [], columns: 0 };
    step[name].forEach((row, r) => {
+    if (!Array.isArray(row)) return;
     grid.rows[r] = Math.max(grid.rows[r] ?? 0, row.length);
     grid.columns = Math.max(grid.columns, row.length);
     for (const value of row) bounds.valueCharacters = Math.max(bounds.valueCharacters, String(value ?? '—').length);
@@ -92,4 +93,13 @@ export function treeLayout(steps) {
   height = Math.max(height, (depthMax + 1) * 70);
  }
  return { positions, width, height };
+}
+export function listLayout(steps) {
+ const positions = new Map(); let maxVisible = 0, windowed = false;
+ for (const step of steps) {
+  windowed ||= Boolean(step.nodeLength);
+  maxVisible = Math.max(maxVisible, step.nodes?.length ?? 0);
+  for (const node of step.nodes ?? []) if (!positions.has(node.id) && positions.size < 64) positions.set(node.id, 60 + positions.size * 105);
+ }
+ return { positions: windowed ? new Map() : positions, width: Math.max(210, Math.min(64, Math.max(maxVisible, positions.size)) * 105 + 30) };
 }
