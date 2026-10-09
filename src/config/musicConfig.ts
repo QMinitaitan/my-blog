@@ -19,4 +19,3 @@ export const navbarPlaylist = [
  {name:'四季ノ唄',artist:'MINMI',url:'',cover:'/images/champloo-night-v2.png'},
  {name:'who’s theme',artist:'Nujabes · MINMI',url:'',cover:'/images/champloo-night.png'},
 ];
-

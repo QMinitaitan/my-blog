@@ -112,4 +112,3 @@ export async function getCategoryList(): Promise<Category[]> {
 	}
 	return ret;
 }
-
