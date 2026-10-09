@@ -19,6 +19,7 @@
 - `node node_modules/astro/astro.js check`：0 errors、0 warnings；1 个既存 `_cssVar` 未使用提示。
 - `node node_modules/astro/astro.js build`：成功，22 个页面；Pagefind 随后单独执行成功，索引 18 页（17 专题和关于页）。
 - `git diff --check`：通过。默认 pnpm 包装器因本机 pnpm 11 的构建脚本策略拒绝自动安装，实际检查使用同一项目本地 Astro 和 Pagefind 可执行文件。
+- GitHub Node.js 22／23 的 Astro Build 和 Astro Check 均通过，Vercel 自动预览构建通过。全量 Biome quality 仍失败：同一 Biome 2.2.5 在基线 `98467b6` 有 194 个错误（185 格式、8 import、1 既存 noEmptyPattern），本分支修正后为 188（180 格式、7 import、同一 noEmptyPattern）。全部 100 个生成代码 JSON 在两份失败清单中；本次涉及的 12 个源码文件 Biome ci 通过，没有新增硬 lint 错误。未批量格式化无关文件或弱化 CI。
 - `dist/posts/`、RSS item 和 sitemap 文章路由均为 17。隐藏的 `/posts/code-block-preview/` 返回 404；Pagefind 搜索 `LeetCode` 得到 17 条，`Expressive Code` 得到 0 条；`dist/prototypes/` 不存在。
 
 ## 浏览器检查
@@ -45,3 +46,5 @@
 ## 检查边界
 
 全部 100 题经过既有算法回归；浏览器尺寸检查采用上表代表题，没有逐步操作全部 100 题。链表 random／交换、其他树递归及其他回溯题的算法正确性由既有回归覆盖，未对它们逐样本进行视觉检查。减少动态效果行为由样式和交互实现检查，未单独切换操作系统偏好。四首原始歌曲尚无正式音源，仍显示真实缺失状态。
+
+临时实现工作树已清理；音乐工作树 `C:/Users/mini0/.codex/tmp/blog-content-music` 的 node_modules 是指向 E:/fuwari/node_modules 的联接，自动审批拒绝联接清理，仅返回 blocked by policy，因此保留该工作树。主集成工作树与已推送分支保留供审查。
