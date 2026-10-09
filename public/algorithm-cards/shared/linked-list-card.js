@@ -58,7 +58,7 @@ export function linkedListCard({
 				buildTrace,
 				prepareAnimation(root, steps) {
 					layoutBounds = listLayout(steps);
-					root.getElementById("list").style.minHeight = "285px";
+					root.getElementById("list").style.minHeight = `${185 + 48 + (steps.some(s => s.nodeLength || s.nodes.length > 16) ? 52 : 0)}px`;
 					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", context: "visualNote", result: "answer" } });
 				},
 				formatExample: (e) =>

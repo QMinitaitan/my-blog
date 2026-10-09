@@ -68,7 +68,7 @@ export function treeCard({
 				prepareAnimation(root, steps) {
 					layoutBounds = treeLayout(steps);
 					root.getElementById("tree").style.minHeight = `${layoutBounds.height}px`;
-					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", stack: 150, result: "answer" } });
+					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", stack: "stack", result: "answer" } });
 				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.input ?? e.nums ?? e.preorder)}`,

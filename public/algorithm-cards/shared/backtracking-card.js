@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -32,6 +33,9 @@ export function backtrackingCard({
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					return reserveSample(root, sampleBounds(steps), { rows: { choices: "candidates", path: "path" }, texts: { stage: "text", calls: "calls", answers: "answer", result: "answer" } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.nums ?? e.candidates ?? e.input ?? e.digits ?? e.s ?? e.n)}${e.target !== undefined ? ` · target=${e.target}` : ""}`,
 				getVariables: (s) =>

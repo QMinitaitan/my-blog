@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample, heapLayout } from "./sample-layout.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
 import { stateValue } from "./state-value.js";
@@ -26,11 +27,16 @@ export function heapCard({
 	return {
 		template,
 		mount(root, signal) {
+			let heights;
 			return mountCard(root, signal, {
 				id: problemId,
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					heights = heapLayout(steps);
+					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", result: "answer" } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.nums ?? e.operations)}`,
 				getVariables: (s) =>
@@ -45,7 +51,7 @@ export function heapCard({
 					root.getElementById("heaps").innerHTML = s.heaps
 						.map(({ label, values, length = values.length }) => {
 							const shown = values.slice(0, 31),
-								depth = Math.ceil(Math.log2(shown.length + 1)),
+								depth = heights.get(label) / 60,
 								positions = shown.map((v, i) => {
 									const row = Math.floor(Math.log2(i + 1)),
 										first = 2 ** row - 1;
@@ -55,7 +61,7 @@ export function heapCard({
 										y: row * 60 + 25,
 									};
 								});
-							return `<p>${escapeHtml(label)} · ${length} 项${length > shown.length ? "，仅显示前 31 个原下标节点" : ""}</p>${shown.length ? `<svg role="img" aria-label="${escapeHtml(label)}" viewBox="0 0 600 ${depth * 60}" style="width:100%;max-height:300px">${positions.map((p, i) => `${i ? `<line x1="${positions[Math.floor((i - 1) / 2)].x}" y1="${positions[Math.floor((i - 1) / 2)].y}" x2="${p.x}" y2="${p.y}" stroke="#91a2bd"/>` : ""}<circle cx="${p.x}" cy="${p.y}" r="17" fill="${i === 0 ? "var(--primary)" : "#303848"}" stroke="#91a2bd"/><text x="${p.x}" y="${p.y + 5}" text-anchor="middle" fill="white">${escapeHtml(p.v)}</text><text x="${p.x}" y="${p.y + 29}" text-anchor="middle" fill="#91a2bd" font-size="10">下标 ${i}</text>`).join("")}</svg>` : "空堆"}`;
+							return `<p>${escapeHtml(label)} · ${length} 项${length > shown.length ? "，仅显示前 31 个原下标节点" : ""}</p>${`<svg role="img" aria-label="${escapeHtml(label)}" width="600" height="${depth * 60}" style="display:block">${positions.map((p, i) => `${i ? `<line x1="${positions[Math.floor((i - 1) / 2)].x}" y1="${positions[Math.floor((i - 1) / 2)].y}" x2="${p.x}" y2="${p.y}" stroke="#91a2bd"/>` : ""}<circle cx="${p.x}" cy="${p.y}" r="17" fill="${i === 0 ? "var(--primary)" : "#303848"}" stroke="#91a2bd"/><text x="${p.x}" y="${p.y + 5}" text-anchor="middle" fill="white">${escapeHtml(p.v)}</text><text x="${p.x}" y="${p.y + 29}" text-anchor="middle" fill="#91a2bd" font-size="10">下标 ${i}</text>`).join("")}</svg>`}<p style="height:24px;margin:0">${shown.length ? "" : "空堆"}</p>`;
 						})
 						.join("");
 					root.getElementById("result").textContent =

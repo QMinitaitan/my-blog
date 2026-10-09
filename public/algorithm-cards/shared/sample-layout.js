@@ -19,7 +19,7 @@ export function sampleBounds(steps) {
    for (const value of values) { if (typeof value === 'number') bounds.maxValue = Math.max(bounds.maxValue, value); bounds.valueCharacters = Math.max(bounds.valueCharacters, (typeof value === 'object' ? JSON.stringify(value) : String(value ?? '—')).length); }
   }
   for (const [name, value] of Object.entries(step)) {
-   if (typeof value === 'string' || name === 'answer' || name === 'calls')
+   if (typeof value === 'string' || name === 'answer' || name === 'calls' || name === 'stack' || name === 'queue')
     bounds.textCharacters[name] = Math.max(bounds.textCharacters[name] ?? 0, String(typeof value === 'string' ? value : JSON.stringify(value)).length);
   }
   bounds.labelCharacters = Math.max(bounds.labelCharacters, Object.keys(step.pointers ?? {}).join("/").length);
@@ -49,7 +49,9 @@ export function reserveSample(root, bounds, { rows = {}, texts = {}, grids = {} 
    const node = root.getElementById(id);
    if (!node) continue;
    const chars = typeof config === 'number' ? config : bounds.textCharacters[config] ?? 0;
-   node.style.minHeight = `${Math.max(1, Math.ceil((chars + 40) * 12 / width)) * 24}px`;
+   node.style.lineHeight = "24px";
+   node.style.overflowWrap = "anywhere";
+   node.style.minHeight = `${Math.max(1, Math.ceil((chars + 40) * 16 / width)) * 24}px`;
   }
   for (const [id, name] of Object.entries(grids)) {
    const node = root.getElementById(id), grid = bounds.grids[name];
@@ -102,4 +104,22 @@ export function listLayout(steps) {
   for (const node of step.nodes ?? []) if (!positions.has(node.id) && positions.size < 64) positions.set(node.id, 60 + positions.size * 105);
  }
  return { positions: windowed ? new Map() : positions, width: Math.max(210, Math.min(64, Math.max(maxVisible, positions.size)) * 105 + 30) };
+}
+export function trieLayout(steps) {
+ const nodes = steps.reduce((largest, s) => (s.trieNodes?.length ?? 0) > largest.length ? s.trieNodes : largest, []);
+ const byId = new Map(nodes.map(n => [n.id, n])), positions = new Map(); let order = 0;
+ function visit(id, depth) {
+  const node = byId.get(id); if (!node) return;
+  const children = Object.values(node.children).filter(child => byId.has(child));
+  children.forEach(child => visit(child, depth + 1));
+  const xs = children.map(child => positions.get(child).x);
+  positions.set(id, { x: children.length ? (Math.min(...xs) + Math.max(...xs)) / 2 : ++order * 65, y: depth * 65 + 30 });
+ }
+ visit('', 0);
+ return {positions, width: (order + 1) * 65 + 60, height: (Math.max(0, ...nodes.map(n => n.id.length)) + 1) * 65 + 20};
+}
+export function heapLayout(steps) {
+ const heights = new Map();
+ for (const s of steps) for (const heap of s.heaps ?? []) heights.set(heap.label, Math.max(heights.get(heap.label) ?? 60, Math.ceil(Math.log2(Math.min(31, heap.values.length) + 1)) * 60));
+ return heights;
 }
