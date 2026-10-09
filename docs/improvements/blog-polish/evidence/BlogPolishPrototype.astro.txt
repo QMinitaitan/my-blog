@@ -1,0 +1,9 @@
+---
+import { Icon } from "astro-icon/components";
+// Throwaway UI: three variants on the existing article, gated by ?variant=A/B/C.
+---
+<template id="pp-native-play"><Icon name="material-symbols:play-arrow-rounded" /></template>
+<template id="pp-native-stop"><Icon name="material-symbols:stop-rounded" /></template>
+<template id="pp-native-prev"><Icon name="material-symbols:skip-previous-outline-rounded" /></template>
+<template id="pp-native-next"><Icon name="material-symbols:skip-next-outline-rounded" /></template>
+<script is:inline type="module" src="/prototypes/blog-polish-prototype.js"></script>
