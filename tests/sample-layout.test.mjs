@@ -28,3 +28,13 @@ test('deleting a list node preserves surviving identities and bounds', () => {
 test('one-dimensional dp snapshots do not become matrix layouts', () => {
  assert.deepEqual(sampleBounds([{values:[0,1],dp:[0,1]}]).grids.dp.rows,[]);
 });
+import { trieLayout, heapLayout } from '../public/algorithm-cards/shared/sample-layout.js';
+test('shared-prefix branches reserve the final Trie anchors at initialization', () => {
+ const root={id:'',children:{a:'a',b:'b'}}, a={id:'a',children:{},end:true}, b={id:'b',children:{},end:false};
+ const layout=trieLayout([{trieNodes:[{id:'',children:{}}]}, {trieNodes:[root,a,b]}]);
+ assert.deepEqual(layout.positions.get(''),{x:97.5,y:30});
+ assert.equal(layout.height,150);
+});
+test('heap insertion reserves final levels while deletion keeps the same extent', () => {
+ assert.equal(heapLayout([{heaps:[{label:'min',values:[]}]},{heaps:[{label:'min',values:[1,2,3,4]}]},{heaps:[{label:'min',values:[1]}]}]).get('min'),180);
+});

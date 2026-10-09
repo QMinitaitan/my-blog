@@ -40,7 +40,7 @@ export function graphCard({
 					const vertices = steps.find(s => s.vertices.length === max).vertices;
 					anchors = new Map(vertices.map((id, i) => [id, { x: 60 + (i % 4) * 110, y: 50 + Math.floor(i / 4) * 100 }]));
 					root.getElementById("graph").style.minHeight = `${graphHeight}px`;
-					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", queue: 150, result: "answer" } });
+					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", queue: "queue", result: "answer" } });
 				},
 				formatExample: (e) =>
 					`${e.label} · numCourses=${e.numCourses} · prerequisites=${JSON.stringify(e.prerequisites)}`,
