@@ -1,0 +1,13 @@
+{
+  "afterNav": 3.7,
+  "label": "停止音乐",
+  "pausedAfter": 2.1,
+  "pausedBefore": 2.1,
+  "playing": {
+    "label": "停止音乐",
+    "time": 2.1
+  },
+  "resumed": 3.2,
+  "sameNode": true,
+  "url": "/archive/"
+}

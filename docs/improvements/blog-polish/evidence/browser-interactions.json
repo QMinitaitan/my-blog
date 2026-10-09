@@ -1,0 +1,44 @@
+{
+  "collapsed": true,
+  "controls": [
+    "← 上一步",
+    "下一步 →"
+  ],
+  "dividerRole": "separator",
+  "expanded": true,
+  "expandedAfter": false,
+  "focusReturned": true,
+  "highlights": [
+    {
+      "count": 1,
+      "l": "python",
+      "line": "6"
+    },
+    {
+      "count": 1,
+      "l": "java",
+      "line": "7"
+    },
+    {
+      "count": 1,
+      "l": "cpp",
+      "line": "9"
+    },
+    {
+      "count": 1,
+      "l": "javascript",
+      "line": "3"
+    }
+  ],
+  "otherStillOpen": true,
+  "pageWidth": 390,
+  "shiftTabPrevented": false,
+  "singleUnchanged": true,
+  "switched": {
+    "input": "nums=[3, 2, 4]target=6",
+    "out": "...",
+    "step": "0",
+    "value": "1"
+  },
+  "viewport": 390
+}
