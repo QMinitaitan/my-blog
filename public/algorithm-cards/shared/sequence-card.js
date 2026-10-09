@@ -200,7 +200,7 @@ export function sequenceCard({
 				buildTrace,
 				prepareAnimation(root, steps) {
 					const bounds = layoutBounds = sampleBounds(steps);
-					return reserveSample(root, bounds, { rows: { sequence: Math.min(16, bounds.rows.values ?? 0), auxiliary: Math.min(16, bounds.rows.auxiliary ?? 0), extra: (bounds.rows.stack ?? 0) + (bounds.rows.bucketEntries ?? 0) }, texts: { stage: "text", result: "answer", "auxiliary-title": 30 } });
+					return reserveSample(root, bounds, { rows: { sequence: { count: Math.min(24, bounds.rows.values ?? 0), rowHeight: display === "bars" ? 218 : 88 }, auxiliary: Math.min(24, bounds.rows.auxiliary ?? 0), extra: { count: (bounds.rows.stack ?? 0) + (bounds.rows.bucketEntries ?? 0), extraHeight: (bounds.rows.stack || bounds.rows.bucketEntries) ? 180 : 0 } }, texts: { stage: "text", result: "answer", "auxiliary-title": 30 } });
 				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.nums ?? e.height ?? e.input)}${e.target !== undefined ? ` · target = ${e.target}` : ""}${e.k !== undefined ? ` · k = ${e.k}` : ""}${e.amount !== undefined ? ` · amount = ${e.amount}` : ""}`,
