@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -191,11 +192,16 @@ export function sequenceCard({
 	return {
 		template,
 		mount(root, signal) {
+			let layoutBounds;
 			return mountCard(root, signal, {
 				id: problemId,
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					const bounds = layoutBounds = sampleBounds(steps);
+					return reserveSample(root, bounds, { rows: { sequence: Math.min(16, bounds.rows.values ?? 0), auxiliary: Math.min(16, bounds.rows.auxiliary ?? 0), extra: (bounds.rows.stack ?? 0) + (bounds.rows.bucketEntries ?? 0) }, texts: { stage: "text", result: "answer", "auxiliary-title": 30 } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.nums ?? e.height ?? e.input)}${e.target !== undefined ? ` · target = ${e.target}` : ""}${e.k !== undefined ? ` · k = ${e.k}` : ""}${e.amount !== undefined ? ` · amount = ${e.amount}` : ""}`,
 				getVariables: (s) =>
@@ -224,15 +230,7 @@ export function sequenceCard({
 							? s.waterLevels?.[s.valueIndices.indexOf(index)]
 							: s.waterLevels?.[index];
 					const active = s.pointers ?? {};
-					const scale =
-						110 /
-						Math.max(
-							1,
-							values.reduce(
-								(max, v) => (typeof v === "number" ? Math.max(max, v) : max),
-								0,
-							),
-						);
+					const scale = 110 / layoutBounds.maxValue;
 					const focus = Object.values(active).filter(
 						(i) => Number.isInteger(i) && i >= 0 && i < valueLength,
 					);
