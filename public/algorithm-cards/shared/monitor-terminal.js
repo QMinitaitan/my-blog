@@ -24,8 +24,8 @@ export function terminalInputs(example) {
 }
 
 export function monitorTerminalTemplate({time, space}) {
-  return `<section class="monitor-terminal" tabindex="0" role="group" aria-label="执行终端，Shift加Tab切换样本" aria-keyshortcuts="Shift+Tab">
-<div class="terminal-head"><span class="terminal-brand">status</span><div class="terminal-case-tools"><button id="case-current" type="button"></button><span class="case-shortcut">Shift+Tab</span></div></div>
+  return `<section class="monitor-terminal" tabindex="0" role="group" aria-label="执行终端">
+<div class="terminal-head"><span class="terminal-brand">status</span><div class="terminal-case-tools"><button id="case-current" type="button"></button></div></div>
 <select id="example-select" hidden aria-label="选择算法样本"></select>
 <div class="terminal-io"><div class="terminal-row" aria-label="样本输入"><span class="console-marker" aria-hidden="true">&gt;&gt;&gt;</span><div id="terminal-input"></div></div><div class="terminal-row terminal-output-row" aria-label="算法输出"><span class="console-marker" aria-hidden="true">&lt;&lt;&lt;</span><code id="terminal-output" aria-label="尚未返回">...</code></div></div>
 <p id="description" class="shared-step" hidden></p>
@@ -39,13 +39,11 @@ export function mountMonitorTerminal(root, signal, {examples, onSelect}) {
   const style = document.createElement('style'); style.textContent = monitorTerminalStyles; root.append(style);
   const listen = (node,type,callback) => node.addEventListener(type,callback,{signal});
   const next = () => onSelect((Number($('example-select').value)+1)%examples.length);
-  listen($('case-current'),'click',next);
-  listen(root.host,'keydown',event => {
-    const target = event.composedPath()[0];
-    if (target.matches?.('input,textarea,select,[contenteditable="true"]')) return;
-    if (event.key==='Tab' && event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey && !$('solution').hidden) {
-      event.preventDefault(); if(event.repeat) return; next();terminal.focus({preventScroll:true});
-    }
+  listen(root.querySelector('.terminal-head'),'dblclick',next);
+  listen($('case-current'),'keydown',event => {
+    if (!['Enter',' '].includes(event.key)) return;
+    event.preventDefault();
+    if (!event.repeat) next();
   });
   listen(terminal,'click',event => {
     if(!event.composedPath().some(node=>node.matches?.('button,input,select,a'))) terminal.focus({preventScroll:true});
@@ -56,7 +54,7 @@ export function mountMonitorTerminal(root, signal, {examples, onSelect}) {
       if(sampleIndex!==index) {
         sampleIndex=index;
         $('case-current').innerHTML=`<span class="case-count">${String(index+1).padStart(2,'0')}/${String(examples.length).padStart(2,'0')}</span><span>${escape(example.label || '样本')}</span>`;
-        $('case-current').setAttribute('aria-label',`${index+1}/${examples.length} ${example.label || '样本'}，点击切换到下一个样本`);
+        $('case-current').setAttribute('aria-label',`${index+1}/${examples.length} ${example.label || '样本'}，双击状态栏或按 Enter、空格切换到下一个样本`);
         $('terminal-input').innerHTML=terminalInputs(example).map(([name,value])=>`<span class="input-field"><span class="input-param">${escape(name)}</span><span class="input-equals">=</span><code>${escape(terminalValue(value))}</code></span>`).join('');
         terminal.querySelector('.terminal-announcement').textContent=`已切换到${example.label || '样本'}，执行回到初始步骤。`;
       }
