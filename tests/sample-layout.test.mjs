@@ -38,3 +38,17 @@ test('shared-prefix branches reserve the final Trie anchors at initialization', 
 test('heap insertion reserves final levels while deletion keeps the same extent', () => {
  assert.equal(heapLayout([{heaps:[{label:'min',values:[]}]},{heaps:[{label:'min',values:[1,2,3,4]}]},{heaps:[{label:'min',values:[1]}]}]).get('min'),180);
 });
+import { reserveSample } from '../public/algorithm-cards/shared/sample-layout.js';
+test('a stack slot includes caption and nested row margins before stepping', () => {
+ const animation={clientWidth:400,dataset:{},style:{setProperty(){}}};
+ const extra={style:{}};
+ const root={querySelector:()=>animation,getElementById:id=>id==='extra'?extra:null};
+ reserveSample(root,sampleBounds([{values:[1],stack:[-1,0,1]}]),{rows:{extra:{count:3,extraHeight:180}}});
+ assert.equal(extra.style.minHeight,'258px');
+});
+test('a slot reserves long explanatory text in addition to its structural rows on narrow screens', () => {
+ const animation={clientWidth:280,dataset:{},style:{setProperty(){}}},extra={style:{}};
+ const root={querySelector:()=>animation,getElementById:()=>extra};
+ reserveSample(root,sampleBounds([{values:[1]}]),{rows:{extra:{count:0,textCharacters:100}}});
+ assert.equal(extra.style.minHeight,'270px');
+});
