@@ -1,8 +1,21 @@
 ---
-import { Icon } from 'astro-icon/components';
-import { navbarPlaylist } from '../../config/musicConfig';
-import { url } from '../../utils/url-utils';
-const tracks=navbarPlaylist.map(track=>({...track,url:track.url?(/^(https?:)?\/\//.test(track.url)?track.url:url(track.url)):'',cover:track.cover?(/^(https?:)?\/\//.test(track.cover)?track.cover:url(track.cover)):''}));
+import { Icon } from "astro-icon/components";
+import { navbarPlaylist } from "../../config/musicConfig";
+import { url } from "../../utils/url-utils";
+
+const tracks = navbarPlaylist.map((track) => ({
+	...track,
+	url: track.url
+		? /^(https?:)?\/\//.test(track.url)
+			? track.url
+			: url(track.url)
+		: "",
+	cover: track.cover
+		? /^(https?:)?\/\//.test(track.cover)
+			? track.cover
+			: url(track.cover)
+		: "",
+}));
 ---
 <div class="navbar-music" data-tracks={JSON.stringify(tracks)}>
  <button class="music-trigger btn-plain scale-animation" aria-label="播放音乐" title="播放音乐" aria-controls="navbar-music-panel" aria-expanded="false">
