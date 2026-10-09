@@ -72,3 +72,24 @@ export const sampleLayoutStyles = `<style>
 .animation[data-stable-layout] td small{height:17px;line-height:17px}
 .animation[data-stable-layout] .sample-placeholder{visibility:hidden}
 </style>`;
+/** Stable identity anchors for ordinary teaching trees; windowed snapshots keep their bounded slots. */
+export function treeLayout(steps) {
+ let positions = new Map(), height = 70, width = 112;
+ for (const step of steps) {
+  const placed = new Map(); let index = 0, depthMax = 0;
+  function visit(node, depth) {
+   if (!node || placed.has(node.id)) return;
+   // Mark before following children, including shared/cyclic references.
+   placed.set(node.id, null);
+   visit(node.left, depth + 1);
+   placed.set(node.id, { x: ++index * 56, y: depth * 70 + 30 });
+   depthMax = Math.max(depthMax, depth);
+   visit(node.right, depth + 1);
+  }
+  visit(step.tree, 0);
+  if (placed.size > positions.size) positions = placed;
+  width = Math.max(width, (index + 1) * 56);
+  height = Math.max(height, (depthMax + 1) * 70);
+ }
+ return { positions, width, height };
+}

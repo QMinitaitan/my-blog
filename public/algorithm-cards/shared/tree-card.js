@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample, treeLayout } from "./sample-layout.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
 
@@ -53,16 +54,22 @@ export function treeCard({
 		time,
 		space,
 		animation:
-			'<p id="sample-note" class="hash-caption"></p><div id="tree"></div><p id="stack" class="hash-caption"></p><p id="result" class="hash-caption"></p><p class="legend">紫框：当前节点　绿框：已访问　连线标记左右孩子</p>',
+			'<p id="sample-note" class="hash-caption"></p><div id="tree" style="overflow:auto"></div><p id="stack" class="hash-caption"></p><p id="result" class="hash-caption"></p><p class="legend">紫框：当前节点　绿框：已访问　连线标记左右孩子</p>',
 	});
 	return {
 		template,
 		mount(root, signal) {
+			let layoutBounds;
 			return mountCard(root, signal, {
 				id: problemId,
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					layoutBounds = treeLayout(steps);
+					root.getElementById("tree").style.minHeight = `${layoutBounds.height}px`;
+					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", stack: 150, result: "answer" } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.input ?? e.nums ?? e.preorder)}`,
 				getVariables: (s) => s.variables,
@@ -77,7 +84,9 @@ export function treeCard({
 						if (!node || laidOut.has(node.id)) return;
 						laidOut.add(node.id);
 						layout(node.left, depth + 1);
-						const placed = { ...node, x: ++position * 56, y: depth * 70 + 30 };
+						const anchor = layoutBounds.positions.get(node.id);
+						position++;
+						const placed = { ...node, ...(anchor ?? { x: position * 56, y: depth * 70 + 30 }) };
 						nodes.push(placed);
 						maxDepth = Math.max(maxDepth, depth);
 						layout(node.right, depth + 1);
@@ -98,7 +107,7 @@ export function treeCard({
 								);
 							}
 					root.getElementById("tree").innerHTML = nodes.length
-						? `<svg role="img" aria-label="二叉树当前执行状态" viewBox="0 0 ${(position + 1) * 56} ${(maxDepth + 1) * 70}" style="width:100%;max-height:320px">${edges.join("")}${nodes.map((n) => `<g><circle cx="${n.x}" cy="${n.y}" r="18" fill="${n.id === s.current || s.currentNodes?.includes(n.id) ? "var(--primary)" : s.visited?.includes(n.id) ? "#25614a" : "#303848"}" stroke="${n.id === s.current || s.currentNodes?.includes(n.id) ? "#c6b1fc" : "#91a2bd"}"/><text x="${n.x}" y="${n.y + 5}" text-anchor="middle" font-size="14" fill="white">${escapeHtml(n.val)}</text>${n.id === s.current || s.currentNodes?.includes(n.id) ? `<text x="${n.x}" y="${n.y - 23}" text-anchor="middle" font-size="10" fill="#c6b1fc">${escapeHtml(nodeLabel(n))}</text>` : ""}</g>`).join("")}</svg>`
+						? `<svg role="img" aria-label="二叉树当前执行状态" width="${layoutBounds.width}" height="${layoutBounds.height}" style="display:block">${edges.join("")}${nodes.map((n) => `<g><circle cx="${n.x}" cy="${n.y}" r="18" fill="${n.id === s.current || s.currentNodes?.includes(n.id) ? "var(--primary)" : s.visited?.includes(n.id) ? "#25614a" : "#303848"}" stroke="${n.id === s.current || s.currentNodes?.includes(n.id) ? "#c6b1fc" : "#91a2bd"}"/><text x="${n.x}" y="${n.y + 5}" text-anchor="middle" font-size="14" fill="white">${escapeHtml(n.val)}</text>${n.id === s.current || s.currentNodes?.includes(n.id) ? `<text x="${n.x}" y="${n.y - 23}" text-anchor="middle" font-size="10" fill="#c6b1fc">${escapeHtml(nodeLabel(n))}</text>` : ""}</g>`).join("")}</svg>`
 						: "空树 root = None";
 					root.getElementById("stack").textContent =
 						`${s.stackLabel ?? "栈"}（底 → 顶）：${JSON.stringify(s.stack ?? [])}${s.stackOmitted ? `（中间省略 ${s.stackOmitted} 项）` : ""}`;

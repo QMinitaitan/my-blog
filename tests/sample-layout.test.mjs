@@ -9,3 +9,12 @@ test('five-row Pascal sample reserves growing rows before the first step without
  assert.equal(bounds.grids.matrix.columns, 5);
  assert.deepEqual(steps, before);
 });
+import { treeLayout } from '../public/algorithm-cards/shared/sample-layout.js';
+test('building a tree keeps existing node anchors as children are added', () => {
+ const leaf = { id: 2, val: 3, left: null, right: null };
+ const complete = { id: 1, val: 2, left: {id: 0, val: 1, left: null, right: null}, right: leaf };
+ const layout = treeLayout([{tree: leaf}, {tree: complete}]);
+ assert.equal(layout.positions.get(2).x, 168);
+ assert.equal(layout.height, 140);
+ assert.equal(layout.width, 224);
+});
