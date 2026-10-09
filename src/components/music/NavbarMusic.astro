@@ -2,7 +2,7 @@
 import { Icon } from 'astro-icon/components';
 import { navbarPlaylist } from '../../config/musicConfig';
 import { url } from '../../utils/url-utils';
-const tracks=navbarPlaylist.map(track=>({...track,url:track.url?(/^(https?:)?\/\//.test(track.url)?track.url:url(track.url)):'',cover:track.cover?url(track.cover):''}));
+const tracks=navbarPlaylist.map(track=>({...track,url:track.url?(/^(https?:)?\/\//.test(track.url)?track.url:url(track.url)):'',cover:track.cover?(/^(https?:)?\/\//.test(track.cover)?track.cover:url(track.cover)):''}));
 ---
 <div class="navbar-music" data-tracks={JSON.stringify(tracks)}>
  <button class="music-trigger btn-plain scale-animation" aria-label="播放音乐" title="播放音乐" aria-controls="navbar-music-panel" aria-expanded="false">
@@ -26,7 +26,7 @@ const tracks=navbarPlaylist.map(track=>({...track,url:track.url?(/^(https?:)?\/\
 .navbar-music{position:relative;display:flex;align-items:center;flex:none;--music-ink:#252330}:global(.dark) .navbar-music{--music-ink:#e6e1ed}
 .music-trigger{width:2.75rem;height:2.75rem;border-radius:.75rem;display:flex;align-items:center;justify-content:center}.music-trigger span{width:1.75rem;height:1.75rem}.music-trigger span[hidden]{display:none}.music-trigger :global(svg){width:100%;height:100%}
 .music-panel{display:none;position:absolute;top:100%;right:0;width:360px;max-width:calc(100vw - 24px);height:222px;box-sizing:border-box;overflow:hidden;border-radius:16px;border:1px solid color-mix(in srgb,var(--primary) 18%,transparent);background:var(--card-bg);box-shadow:0 14px 40px #0003;isolation:isolate;color:var(--music-ink)}
-.navbar-music:hover .music-panel,.navbar-music:focus-within .music-panel{display:block}
+.navbar-music[data-open="true"] .music-panel{display:block}
 .music-art,.music-shade{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}.music-art{width:61%;mask-image:linear-gradient(to right,#000 64%,transparent)}.music-shade{z-index:-1;background:linear-gradient(0deg,#0008,transparent 65%);width:57%;mask-image:linear-gradient(to right,#000 64%,transparent)}
 .music-info{position:absolute;left:20px;bottom:20px;width:155px;color:white;text-shadow:0 1px 6px #0009}.music-info h3{font-size:18px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}.music-info p{font-size:11px;margin:4px 0 0}.music-progress{display:flex;flex-direction:column;gap:7px;margin-top:12px;font-size:10px}.music-progress input{appearance:none;height:6px;width:100%;border-radius:8px;background:linear-gradient(to right,#d9c3ff var(--played,0%),#ffffff45 var(--played,0%));margin:0}.music-progress input::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:#e7d7ff}.music-progress input::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:#e7d7ff}.music-info .music-status{font-size:10px;min-height:14px}
 .music-list{position:absolute;right:10px;top:13px;height:194px;width:155px;overflow-y:auto;padding:72px 0;box-sizing:border-box;scroll-snap-type:y proximity;overscroll-behavior:contain;scrollbar-width:none;mask-image:linear-gradient(to bottom,transparent,#000 22%,#000 78%,transparent)}
@@ -36,6 +36,7 @@ const tracks=navbarPlaylist.map(track=>({...track,url:track.url?(/^(https?:)?\/\
 </style>
 <script>
 import { MusicSession } from './music-session.mjs';
+import { mountMusicPopup } from './music-popup.mjs';
 import type { Track } from './music-session.mjs';
 const host=document.querySelector<HTMLElement>('.navbar-music');
 if(host && !host.dataset.mounted){
@@ -64,9 +65,7 @@ if(host && !host.dataset.mounted){
  };
  trigger.onclick=()=>{void session.toggle();};range.oninput=()=>session.seek(Number(range.value));
  buttons.forEach((button,index)=>{button.onclick=()=>{void session.select(index);center(button);};button.onkeydown=event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const next=(index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[next].focus();center(buttons[next]);}};});
- list.onscroll=focus;host.onmouseenter=()=>{trigger.setAttribute('aria-expanded','true');focus();};host.onmouseleave=()=>trigger.setAttribute('aria-expanded',String(host.matches(':focus-within')));
- host.addEventListener('focusin',()=>{trigger.setAttribute('aria-expanded','true');focus();});host.addEventListener('focusout',()=>queueMicrotask(()=>trigger.setAttribute('aria-expanded',String(host.matches(':hover,:focus-within')))));
+ list.onscroll=focus;mountMusicPopup(host,trigger,document,focus);
  session.addEventListener('change',render);render();
 }
 </script>
-
