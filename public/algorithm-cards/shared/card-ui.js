@@ -1,5 +1,5 @@
-import { sampleLayoutStyles } from "./sample-layout.js";
 import { mountProblemDivider } from './problem-divider.js';
+import { sampleLayoutStyles } from "./sample-layout.js";
 import baseTemplate from "./base-template.js";
 import { mountDropdown } from "./dropdown.js";
 import { decorateCodes } from "./code-ideas.js";
