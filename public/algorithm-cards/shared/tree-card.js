@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample, treeLayout } from "./sample-layout.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -84,7 +85,8 @@ export function treeCard({
 						if (!node || laidOut.has(node.id)) return;
 						laidOut.add(node.id);
 						layout(node.left, depth + 1);
-						const anchor = layoutBounds.positions.get(node.id);
+						const anchors = layoutBounds.positionsByTree?.get(s.tree) ?? layoutBounds.positions;
+						const anchor = anchors.get(node.id);
 						position++;
 						const placed = { ...node, ...(anchor ?? { x: position * 56, y: depth * 70 + 30 }) };
 						nodes.push(placed);
@@ -113,7 +115,7 @@ export function treeCard({
 						`${s.stackLabel ?? "栈"}（底 → 顶）：${JSON.stringify(s.stack ?? [])}${s.stackOmitted ? `（中间省略 ${s.stackOmitted} 项）` : ""}`;
 					root.getElementById("result").textContent =
 						s.final || (s.line === "result" && s.stackLabel !== "递归调用栈")
-							? `最终结果：${JSON.stringify(s.answer)}`
+							? `最终结果：${terminalValue(s.answer)}`
 							: s.line === "result"
 								? `本次调用返回：${s.answer}`
 								: "";

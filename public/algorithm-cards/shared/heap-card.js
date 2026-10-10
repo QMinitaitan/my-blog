@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample, heapLayout } from "./sample-layout.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -66,7 +67,7 @@ export function heapCard({
 						.join("");
 					root.getElementById("result").textContent =
 						s.final || s.line === "result"
-							? `最终结果：${JSON.stringify(s.answer)}`
+							? `最终结果：${terminalValue(s.answer)}`
 							: "";
 				},
 			});

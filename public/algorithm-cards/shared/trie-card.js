@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample, trieLayout } from "./sample-layout.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -65,7 +66,7 @@ export function trieCard({ codes, examples, buildTrace }) {
 							})
 							.join("")}</svg>`;
 					root.getElementById("returns").textContent =
-						`${s.final ? "最终" : "当前"}操作返回记录：${JSON.stringify(s.answer)}`;
+						`${s.final ? "最终" : "当前"}操作返回记录：${terminalValue(s.answer)}`;
 				},
 			});
 		},

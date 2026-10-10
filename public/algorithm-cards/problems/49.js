@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample } from "../shared/sample-layout.js";
 import { mountStatementExamples } from "../shared/statement-examples.js";
 import { cardTemplate, mountCard, escapeHtml } from "../shared/card-ui.js";
 import { problemBadges } from "./meta.js";
@@ -135,6 +136,14 @@ export function mount(root, signal) {
 		codes,
 		examples,
 		buildTrace,
+		prepareAnimation(root, steps, example) {
+      const bounds = sampleBounds(steps);
+      bounds.valueCharacters = Math.max(1, ...example.strs.map(word => JSON.stringify(word).length));
+      const groups = Math.max(...steps.map(step => step.groups.length));
+      const words = Math.min(example.strs.length, example.strs.length <= 8 ? 8 : 7);
+      const keyCharacters = Math.max(...steps.map(step => JSON.stringify(step.word ?? '').length + JSON.stringify(step.key ?? '').length + 20));
+      return reserveSample(root, bounds, {rows: {words, groups: {count: groups, rowHeight: 50}}, texts: {stage: 'text', 'key-cue': keyCharacters, result: 'answer'}});
+    },
 		getVariables,
 		formatExample: (e) => `${e.label} · strs = ${JSON.stringify(e.strs)}`,
 		renderAnimation(root, s, e) {

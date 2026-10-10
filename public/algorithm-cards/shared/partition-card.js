@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
 import { stateValue } from "./state-value.js";
@@ -17,11 +18,11 @@ export function partitionCard({ codes, examples, buildTrace }) {
 		`${indices ? "<span>仅显示分割附近，跳号处省略</span>" : ""}${values
 			.map((v, p) => {
 				const index = indices?.[p] ?? p;
-				return `${index === cut ? '<strong style="color:var(--primary)">│切口│</strong>' : ""}<div class="array-item"><small>${index} · ${cut === null ? "未分割" : index < cut ? "左" : "右"}</small><div class="array-value">${escapeHtml(v)}</div></div>`;
+				return `<div class="array-item"><small style="color:${index === cut ? 'var(--primary)' : 'inherit'}">${index === cut ? '│切口│ ' : ''}${index} · ${cut === null ? "未分割" : index < cut ? "左" : "右"}</small><div class="array-value">${escapeHtml(v)}</div></div>`;
 			})
 			.join(
 				"",
-			)}${cut === length ? '<strong style="color:var(--primary)">│切口│</strong>' : ""}${length === 0 ? "<span>空数组</span>" : ""}`;
+			)}<div class="array-item${cut === length ? '' : ' sample-placeholder'}"><small>│切口│</small><div class="array-value">末尾</div></div>${length === 0 ? "<span>空数组</span>" : ""}`;
 	return {
 		template,
 		mount(root, signal) {
@@ -30,6 +31,12 @@ export function partitionCard({ codes, examples, buildTrace }) {
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+          const bounds = sampleBounds(steps);
+          bounds.valueCharacters = Math.max(1, ...steps.flatMap(step => [...step.a, ...step.b]).map(value => String(value).length));
+          const rows = Object.fromEntries(['a', 'b'].map(id => [id, {count: Math.max(...steps.map(step => step[id].length)) + 1, extraHeight: steps.some(step => step[`${id}Indices`]) ? 48 : 0}]));
+          return reserveSample(root, bounds, {rows, texts: {stage: 'text', cuts: 120, result: 'answer'}});
+        },
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.nums1)} / ${JSON.stringify(e.nums2)}`,
 				getVariables: (s) =>

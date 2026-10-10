@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
@@ -285,7 +286,7 @@ export function sequenceCard({
 							`<p>频率桶（空桶省略，紫框为当前桶）${s.bucketEntriesOmitted ? `，另 ${s.bucketEntriesOmitted} 个非空桶省略` : ""}</p><div class="array-row">${s.bucketEntries.map((b) => `<div class="array-item${b.frequency === s.frequency ? " current" : ""}"><small>频率 ${b.frequency}</small><div class="array-value">${escapeHtml(JSON.stringify(b.items))}${b.omitted ? ` …另 ${b.omitted} 项` : ""}</div></div>`).join("")}</div>`;
 					root.getElementById("result").textContent =
 						s.line === "result" || s.final
-							? `最终结果：${JSON.stringify(s.answer)}`
+							? `最终结果：${terminalValue(s.answer)}`
 							: "";
 				},
 			});

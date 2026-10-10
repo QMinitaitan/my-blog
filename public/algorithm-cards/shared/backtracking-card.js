@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
@@ -63,9 +64,9 @@ export function backtrackingCard({
 					root.getElementById("calls").textContent =
 						`递归调用栈（底 → 顶）：${JSON.stringify(s.calls ?? [])}`;
 					root.getElementById("answers").textContent =
-						`已保存的独立结果：${JSON.stringify(s.answer)}`;
+						`已保存的独立结果：${terminalValue(s.answer)}`;
 					root.getElementById("result").textContent = s.final
-						? `最终结果：${JSON.stringify(s.answer)}`
+						? `最终结果：${terminalValue(s.answer)}`
 						: "";
 				},
 			});

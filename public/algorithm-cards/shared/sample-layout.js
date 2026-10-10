@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 /** Sample-wide display bounds, computed from immutable snapshots, never by replaying DOM. */
 export function sampleBounds(steps) {
  const bounds = { grids: {}, rows: {}, valueCharacters: 1, maxValue: 1, labelCharacters: 1, textCharacters: {} };
@@ -20,7 +21,7 @@ export function sampleBounds(steps) {
   }
   for (const [name, value] of Object.entries(step)) {
    if (typeof value === 'string' || name === 'answer' || name === 'calls' || name === 'stack' || name === 'queue')
-    bounds.textCharacters[name] = Math.max(bounds.textCharacters[name] ?? 0, String(typeof value === 'string' ? value : JSON.stringify(value)).length);
+    bounds.textCharacters[name] = Math.max(bounds.textCharacters[name] ?? 0, String(name === 'answer' ? terminalValue(value) : typeof value === 'string' ? value : JSON.stringify(value)).length);
   }
   bounds.labelCharacters = Math.max(bounds.labelCharacters, Object.keys(step.pointers ?? {}).join("/").length);
  }
@@ -80,26 +81,35 @@ export const sampleLayoutStyles = `<style>
 .animation[data-stable-layout] td small{height:17px;line-height:17px}
 .animation[data-stable-layout] .sample-placeholder{visibility:hidden}
 </style>`;
-/** Stable identity anchors for ordinary teaching trees; windowed snapshots keep their bounded slots. */
+/** Additions keep stable anchors; rewiring uses snapshot topology within sample-wide bounds. */
 export function treeLayout(steps) {
  let positions = new Map(), height = 70, width = 112;
+ const positionsByTree = new Map(), previousChildren = new Map();
+ let topologyChanges = false;
  for (const step of steps) {
   const placed = new Map(); let index = 0, depthMax = 0;
   function visit(node, depth) {
    if (!node || placed.has(node.id)) return;
    // Mark before following children, including shared/cyclic references.
    placed.set(node.id, null);
+   for (const side of ['left', 'right']) {
+    const key = `${node.id}:${side}`, child = node[side]?.id ?? null;
+    // Adding a child keeps construction anchors; removing or replacing one rewires topology.
+    if (previousChildren.has(key) && previousChildren.get(key) !== null && previousChildren.get(key) !== child) topologyChanges = true;
+    previousChildren.set(key, child);
+   }
    visit(node.left, depth + 1);
    placed.set(node.id, { x: ++index * 56, y: depth * 70 + 30 });
    depthMax = Math.max(depthMax, depth);
    visit(node.right, depth + 1);
   }
   visit(step.tree, 0);
+  positionsByTree.set(step.tree, placed);
   if (placed.size > positions.size) positions = placed;
   width = Math.max(width, (index + 1) * 56);
   height = Math.max(height, (depthMax + 1) * 70);
  }
- return { positions, width, height };
+ return { positions, width, height, positionsByTree: topologyChanges ? positionsByTree : null };
 }
 export function listLayout(steps) {
  const positions = new Map(); let maxVisible = 0, windowed = false;

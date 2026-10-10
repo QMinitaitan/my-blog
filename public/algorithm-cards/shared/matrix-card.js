@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
@@ -71,9 +72,9 @@ export function matrixCard({
 					root.getElementById("dp-grid").innerHTML = s.dp ? grid(s.dp, s) : "";
 					root.getElementById("result").textContent =
 						s.final || s.line === "result"
-							? `最终结果：${JSON.stringify(s.answer)}`
+							? `最终结果：${terminalValue(s.answer)}`
 							: Array.isArray(s.answer)
-								? `当前结果：${JSON.stringify(s.answer)}${s.answerOmitted ? `（另省略 ${s.answerOmitted} 项）` : ""}`
+								? `当前结果：${terminalValue(s.answer)}${s.answerOmitted ? `（另省略 ${s.answerOmitted} 项）` : ""}`
 								: "";
 				},
 			});

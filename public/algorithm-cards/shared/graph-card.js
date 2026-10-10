@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
@@ -38,7 +39,7 @@ export function graphCard({
 					const max = Math.max(...steps.map(s => s.vertices.length));
 					graphHeight = Math.ceil(max / 4) * 100 + 55;
 					const vertices = steps.find(s => s.vertices.length === max).vertices;
-					anchors = new Map(vertices.map((id, i) => [id, { x: 60 + (i % 4) * 110, y: 50 + Math.floor(i / 4) * 100 }]));
+					anchors = new Map((steps.some(s => s.vertexLength) ? [] : vertices).map((id, i) => [id, { x: 60 + (i % 4) * 110, y: 50 + Math.floor(i / 4) * 100 }]));
 					root.getElementById("graph").style.minHeight = `${graphHeight}px`;
 					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", queue: "queue", result: "answer" } });
 				},
@@ -82,7 +83,7 @@ export function graphCard({
 					root.getElementById("queue").textContent =
 						`待处理队列（头 → 尾）：${s.queue === null ? "尚未创建" : JSON.stringify(s.queue)}${s.queueOmitted ? `（省略 ${s.queueOmitted} 项）` : ""}`;
 					root.getElementById("result").textContent = s.final
-						? `最终结果：${JSON.stringify(s.answer)}`
+						? `最终结果：${terminalValue(s.answer)}`
 						: "";
 				},
 			});

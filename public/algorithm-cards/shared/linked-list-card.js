@@ -1,3 +1,4 @@
+import { terminalValue } from "./monitor-terminal.js";
 import { sampleBounds, reserveSample, listLayout } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
@@ -135,7 +136,7 @@ export function linkedListCard({
 							);
 					root.getElementById("result").textContent =
 						s.final || (s.line === "result" && s.answer !== null)
-							? `最终结果：${JSON.stringify(s.answer)}`
+							? `最终结果：${terminalValue(s.answer)}`
 							: "";
 				},
 			});
