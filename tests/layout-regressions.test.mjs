@@ -99,6 +99,8 @@ test('large full answers stay accurate in traces but use a bounded animation pre
   const {config, root} = await renderer('shared/sequence-card.js', 'sequenceCard', {title:'238. product',codes:[],examples:[example],variables:[],buildTrace:problem.buildTrace});
   config.prepareAnimation(root, steps);
   assert.ok(parseFloat(root.getElementById('result').style.minHeight) < 500, 'bounded array window must not reserve thousands of pixels for the full answer');
+  config.renderAnimation(root, steps.find(step => step.answerOmitted), example);
+  assert.match(root.getElementById('extra').innerHTML, /结束时显示最终结果预览，较长结果仍会标注省略/);
   config.renderAnimation(root, steps.at(-1), example);
   assert.match(root.getElementById('result').textContent, /省略/);
   assert.deepEqual(steps.at(-1).answer, Array(1000).fill(1));

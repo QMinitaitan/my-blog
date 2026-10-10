@@ -280,7 +280,7 @@ export function sequenceCard({
 								.join("")
 						: "";
 					root.getElementById("extra").innerHTML =
-						`${escapeHtml(s.visualNote ?? "")}${s.answerOmitted ? `<p>当前结果只展示前 8 项，省略 ${s.answerOmitted} 项；结束时显示完整答案。</p>` : ""}${s.stack ? `<div class="array-row" aria-label="栈从底到顶">${s.stack.map((value, i) => `${s.stackOmitted && i === 4 ? `<span>… 省略 ${s.stackOmitted} 项</span>` : ""}<div class="array-item${i === s.stack.length - 1 ? " current" : ""}"><small>${i === s.stack.length - 1 ? "栈顶" : "栈底 →"}</small><div class="array-value">${escapeHtml(typeof value === "object" ? JSON.stringify(value) : value)}</div></div>`).join("") || "<span>空栈</span>"}</div>` : ""}`;
+						`${escapeHtml(s.visualNote ?? "")}${s.answerOmitted ? `<p>当前结果只展示前 8 项，省略 ${s.answerOmitted} 项；结束时显示最终结果预览，较长结果仍会标注省略。</p>` : ""}${s.stack ? `<div class="array-row" aria-label="栈从底到顶">${s.stack.map((value, i) => `${s.stackOmitted && i === 4 ? `<span>… 省略 ${s.stackOmitted} 项</span>` : ""}<div class="array-item${i === s.stack.length - 1 ? " current" : ""}"><small>${i === s.stack.length - 1 ? "栈顶" : "栈底 →"}</small><div class="array-value">${escapeHtml(typeof value === "object" ? JSON.stringify(value) : value)}</div></div>`).join("") || "<span>空栈</span>"}</div>` : ""}`;
 					if (s.bucketEntries)
 						root.getElementById("extra").innerHTML +=
 							`<p>频率桶（空桶省略，紫框为当前桶）${s.bucketEntriesOmitted ? `，另 ${s.bucketEntriesOmitted} 个非空桶省略` : ""}</p><div class="array-row">${s.bucketEntries.map((b) => `<div class="array-item${b.frequency === s.frequency ? " current" : ""}"><small>频率 ${b.frequency}</small><div class="array-value">${escapeHtml(JSON.stringify(b.items))}${b.omitted ? ` …另 ${b.omitted} 项` : ""}</div></div>`).join("")}</div>`;
