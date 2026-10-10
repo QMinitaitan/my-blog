@@ -1,3 +1,5 @@
+import { terminalValue } from "./monitor-terminal.js";
+import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -32,6 +34,9 @@ export function backtrackingCard({
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					return reserveSample(root, sampleBounds(steps), { rows: { choices: "candidates", path: "path" }, texts: { stage: "text", calls: "calls", answers: "answer", result: "answer" } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.nums ?? e.candidates ?? e.input ?? e.digits ?? e.s ?? e.n)}${e.target !== undefined ? ` · target=${e.target}` : ""}`,
 				getVariables: (s) =>
@@ -59,9 +64,9 @@ export function backtrackingCard({
 					root.getElementById("calls").textContent =
 						`递归调用栈（底 → 顶）：${JSON.stringify(s.calls ?? [])}`;
 					root.getElementById("answers").textContent =
-						`已保存的独立结果：${JSON.stringify(s.answer)}`;
+						`已保存的独立结果：${terminalValue(s.answer)}`;
 					root.getElementById("result").textContent = s.final
-						? `最终结果：${JSON.stringify(s.answer)}`
+						? `最终结果：${terminalValue(s.answer)}`
 						: "";
 				},
 			});

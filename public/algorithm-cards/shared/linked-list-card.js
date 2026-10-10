@@ -1,3 +1,5 @@
+import { terminalValue } from "./monitor-terminal.js";
+import { sampleBounds, reserveSample, listLayout } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -49,11 +51,17 @@ export function linkedListCard({
 	return {
 		template,
 		mount(root, signal) {
+			let layoutBounds;
 			return mountCard(root, signal, {
 				id: problemId,
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					layoutBounds = listLayout(steps);
+					root.getElementById("list").style.minHeight = `${185 + 48 + (steps.some(s => s.nodeLength || s.nodes.length > 16) ? 52 : 0)}px`;
+					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", context: "visualNote", result: "answer" } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.input ?? e.lists ?? e.operations ?? [e.l1, e.l2])}${e.n !== undefined ? ` · n=${e.n}` : ""}`,
 				getVariables: (s) =>
@@ -75,7 +83,7 @@ export function linkedListCard({
 										Object.values(s.pointers ?? {}).includes(n.id),
 								);
 					const positions = new Map(
-						shown.map((node, i) => [node.id, 60 + i * 105]),
+						shown.map((node, i) => [node.id, layoutBounds.positions.get(node.id) ?? 60 + i * 105]),
 					);
 					const arrows = shown
 						.map((node) => {
@@ -93,7 +101,7 @@ export function linkedListCard({
 						})
 						.join("");
 					root.getElementById("list").innerHTML =
-						`${s.nodeLength || s.nodes.length > 16 ? "<p>仅显示当前相关节点，其余节点省略；编号保留节点身份。</p>" : ""}<svg role="img" aria-label="链表节点及 next 指向" width="${Math.max(210, shown.length * 105 + 30)}" height="185" style="display:block"><defs><marker id="next-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#78b9ec"/></marker></defs>${arrows}${shown
+						`${s.nodeLength || s.nodes.length > 16 ? "<p>仅显示当前相关节点，其余节点省略；编号保留节点身份。</p>" : ""}<svg role="img" aria-label="链表节点及 next 指向" width="${layoutBounds.width}" height="185" style="display:block"><defs><marker id="next-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#78b9ec"/></marker></defs>${arrows}${shown
 							.map((node) => {
 								const x = positions.get(node.id),
 									labels = Object.entries(s.pointers ?? {})
@@ -101,7 +109,7 @@ export function linkedListCard({
 										.map(([name]) => name);
 								return `<g><text x="${x}" y="20" text-anchor="middle" fill="#c6b1fc" font-size="12">${escapeHtml(labels.join("/"))}</text><rect x="${x - 27}" y="35" width="54" height="50" rx="8" fill="${labels.length ? "var(--primary)" : "#303848"}" stroke="#91a2bd"/><text x="${x}" y="54" text-anchor="middle" fill="#ccd5e4" font-size="10">${escapeHtml(node.id)}</text><text x="${x}" y="73" text-anchor="middle" fill="white">${escapeHtml(node.val)}</text>${node.next === null ? `<text x="${x}" y="115" text-anchor="middle" fill="#a7b2c6">next = Ø</text>` : ""}</g>`;
 							})
-							.join("")}</svg><p>空引用：${escapeHtml(
+							.join("")}</svg><p style="min-height:48px">空引用：${escapeHtml(
 							Object.entries(s.pointers ?? {})
 								.filter(([, id]) => id === null)
 								.map(([name]) => name)
@@ -128,7 +136,7 @@ export function linkedListCard({
 							);
 					root.getElementById("result").textContent =
 						s.final || (s.line === "result" && s.answer !== null)
-							? `最终结果：${JSON.stringify(s.answer)}`
+							? `最终结果：${terminalValue(s.answer)}`
 							: "";
 				},
 			});

@@ -1,3 +1,4 @@
+import { sampleBounds, reserveSample } from "../shared/sample-layout.js";
 import { mountStatementExamples } from "../shared/statement-examples.js";
 import { cardTemplate, mountCard, escapeHtml } from "../shared/card-ui.js";
 import { problemBadges } from "./meta.js";
@@ -161,6 +162,13 @@ export function mount(root, signal) {
 		codes,
 		examples,
 		buildTrace,
+		prepareAnimation(root, steps) {
+      const bounds = sampleBounds(steps);
+      const set = Math.max(...steps.map(step => step.set.length));
+      const chain = Math.max(...steps.map(step => ['num', 'start'].includes(step.line) || step.chainStart === null ? 0 : Math.min(6, step.current - step.chainStart + 1)));
+      bounds.valueCharacters = steps.reduce((longest, step) => step.set.reduce((length, value) => Math.max(length, String(value).length), longest), 1);
+      return reserveSample(root, bounds, {rows: {'set-view': set, chain}, texts: {stage: 'text', probe: 40, result: 80}});
+    },
 		getVariables,
 		formatExample: (e) => `${e.label} · nums = ${JSON.stringify(e.nums)}`,
 		renderAnimation(root, s, e) {

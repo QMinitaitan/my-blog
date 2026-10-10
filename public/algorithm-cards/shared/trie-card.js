@@ -1,3 +1,5 @@
+import { terminalValue } from "./monitor-terminal.js";
+import { sampleBounds, reserveSample, trieLayout } from "./sample-layout.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
 import { stateValue } from "./state-value.js";
@@ -11,16 +13,22 @@ export function trieCard({ codes, examples, buildTrace }) {
 		time: "每项 O(L)，L 为参数长度",
 		space: "O(S)，S 为插入字符总数",
 		animation:
-			'<p id="sample-note" class="hash-caption"></p><p id="operation" class="hash-caption"></p><div id="trie"></div><p id="returns" class="hash-caption"></p><p class="legend">紫框：当前节点　★ 完整词：end=true　边的字母：children 的键</p>',
+			'<p id="sample-note" class="hash-caption"></p><p id="operation" class="hash-caption"></p><div id="trie" style="overflow:auto"></div><p id="returns" class="hash-caption"></p><p class="legend">紫框：当前节点　★ 完整词：end=true　边的字母：children 的键</p>',
 	});
 	return {
 		template,
 		mount(root, signal) {
+			let layoutBounds;
 			return mountCard(root, signal, {
 				id: "208",
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					layoutBounds = trieLayout(steps);
+					root.getElementById("trie").style.minHeight = `${layoutBounds.height}px`;
+					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", operation: "operation", returns: "answer" } });
+				},
 				formatExample: (e) => e.label,
 				getVariables: (s) =>
 					[
@@ -39,24 +47,7 @@ export function trieCard({ codes, examples, buildTrace }) {
 					root.getElementById("sample-note").textContent = e.note;
 					root.getElementById("operation").textContent =
 						`操作 ${s.operationIndex + 1}/${e.operations.length}：${s.operation}`;
-					const positions = new Map();
-					let order = 0;
-					const byId = new Map(s.trieNodes.map((n) => [n.id, n]));
-					function layout(id, depth) {
-						const node = byId.get(id),
-							children = Object.values(node.children);
-						if (!children.length)
-							positions.set(id, { x: ++order * 65, y: depth * 65 + 30 });
-						else {
-							children.forEach((child) => layout(child, depth + 1));
-							const xs = children.map((child) => positions.get(child).x);
-							positions.set(id, {
-								x: (Math.min(...xs) + Math.max(...xs)) / 2,
-								y: depth * 65 + 30,
-							});
-						}
-					}
-					layout("", 0);
+					const positions = layoutBounds.positions;
 					const edges = s.trieNodes
 						.flatMap((node) =>
 							Object.entries(node.children).map(([letter, id]) => {
@@ -68,14 +59,14 @@ export function trieCard({ codes, examples, buildTrace }) {
 						.join("");
 					const depth = Math.max(...s.trieNodes.map((n) => n.id.length));
 					root.getElementById("trie").innerHTML =
-						`<svg role="img" aria-label="共享前缀路径与单词结束标记" viewBox="0 0 ${(order + 1) * 65} ${(depth + 1) * 65 + 20}" style="width:100%;max-height:380px">${edges}${s.trieNodes
+						`<svg role="img" aria-label="共享前缀路径与单词结束标记" width="${layoutBounds.width}" height="${layoutBounds.height}" style="display:block">${edges}${s.trieNodes
 							.map((n) => {
 								const p = positions.get(n.id);
 								return `<circle cx="${p.x}" cy="${p.y}" r="18" fill="${s.node === n.id ? "var(--primary)" : n.end ? "#25614a" : "#303848"}" stroke="#91a2bd"/><text x="${p.x}" y="${p.y + 5}" text-anchor="middle" fill="white" font-size="11">${escapeHtml(n.id.at(-1) ?? "根")}</text>${n.end ? `<text x="${p.x + 22}" y="${p.y + 4}" font-size="10" fill="#65b98c">★ 完整词</text>` : ""}`;
 							})
 							.join("")}</svg>`;
 					root.getElementById("returns").textContent =
-						`${s.final ? "最终" : "当前"}操作返回记录：${JSON.stringify(s.answer)}`;
+						`${s.final ? "最终" : "当前"}操作返回记录：${terminalValue(s.answer)}`;
 				},
 			});
 		},

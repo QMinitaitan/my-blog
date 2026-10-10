@@ -1,3 +1,5 @@
+import { terminalValue } from "./monitor-terminal.js";
+import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -191,11 +193,16 @@ export function sequenceCard({
 	return {
 		template,
 		mount(root, signal) {
+			let layoutBounds;
 			return mountCard(root, signal, {
 				id: problemId,
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					const bounds = layoutBounds = sampleBounds(steps);
+					return reserveSample(root, bounds, { rows: { sequence: { count: Math.min(24, bounds.rows.values ?? 0), rowHeight: display === "bars" ? 218 : 88 }, auxiliary: Math.min(24, bounds.rows.auxiliary ?? 0), extra: { count: (bounds.rows.stack ?? 0) + (bounds.rows.bucketEntries ?? 0), extraHeight: (bounds.rows.stack && bounds.rows.bucketEntries) ? 268 : (bounds.rows.stack || bounds.rows.bucketEntries) ? 180 : 0, textCharacters: (bounds.textCharacters.visualNote ?? 0) + (steps.some(s => s.answerOmitted) ? 90 : 0) } }, texts: { stage: "text", result: "answer", "auxiliary-title": 30 } });
+				},
 				formatExample: (e) =>
 					`${e.label} · ${JSON.stringify(e.nums ?? e.height ?? e.input)}${e.target !== undefined ? ` · target = ${e.target}` : ""}${e.k !== undefined ? ` · k = ${e.k}` : ""}${e.amount !== undefined ? ` · amount = ${e.amount}` : ""}`,
 				getVariables: (s) =>
@@ -224,15 +231,7 @@ export function sequenceCard({
 							? s.waterLevels?.[s.valueIndices.indexOf(index)]
 							: s.waterLevels?.[index];
 					const active = s.pointers ?? {};
-					const scale =
-						110 /
-						Math.max(
-							1,
-							values.reduce(
-								(max, v) => (typeof v === "number" ? Math.max(max, v) : max),
-								0,
-							),
-						);
+					const scale = 110 / layoutBounds.maxValue;
 					const focus = Object.values(active).filter(
 						(i) => Number.isInteger(i) && i >= 0 && i < valueLength,
 					);
@@ -281,13 +280,13 @@ export function sequenceCard({
 								.join("")
 						: "";
 					root.getElementById("extra").innerHTML =
-						`${escapeHtml(s.visualNote ?? "")}${s.answerOmitted ? `<p>当前结果只展示前 8 项，省略 ${s.answerOmitted} 项；结束时显示完整答案。</p>` : ""}${s.stack ? `<div class="array-row" aria-label="栈从底到顶">${s.stack.map((value, i) => `${s.stackOmitted && i === 4 ? `<span>… 省略 ${s.stackOmitted} 项</span>` : ""}<div class="array-item${i === s.stack.length - 1 ? " current" : ""}"><small>${i === s.stack.length - 1 ? "栈顶" : "栈底 →"}</small><div class="array-value">${escapeHtml(typeof value === "object" ? JSON.stringify(value) : value)}</div></div>`).join("") || "<span>空栈</span>"}</div>` : ""}`;
+						`${escapeHtml(s.visualNote ?? "")}${s.answerOmitted ? `<p>当前结果只展示前 8 项，省略 ${s.answerOmitted} 项；结束时显示最终结果预览，较长结果仍会标注省略。</p>` : ""}${s.stack ? `<div class="array-row" aria-label="栈从底到顶">${s.stack.map((value, i) => `${s.stackOmitted && i === 4 ? `<span>… 省略 ${s.stackOmitted} 项</span>` : ""}<div class="array-item${i === s.stack.length - 1 ? " current" : ""}"><small>${i === s.stack.length - 1 ? "栈顶" : "栈底 →"}</small><div class="array-value">${escapeHtml(typeof value === "object" ? JSON.stringify(value) : value)}</div></div>`).join("") || "<span>空栈</span>"}</div>` : ""}`;
 					if (s.bucketEntries)
 						root.getElementById("extra").innerHTML +=
 							`<p>频率桶（空桶省略，紫框为当前桶）${s.bucketEntriesOmitted ? `，另 ${s.bucketEntriesOmitted} 个非空桶省略` : ""}</p><div class="array-row">${s.bucketEntries.map((b) => `<div class="array-item${b.frequency === s.frequency ? " current" : ""}"><small>频率 ${b.frequency}</small><div class="array-value">${escapeHtml(JSON.stringify(b.items))}${b.omitted ? ` …另 ${b.omitted} 项` : ""}</div></div>`).join("")}</div>`;
 					root.getElementById("result").textContent =
 						s.line === "result" || s.final
-							? `最终结果：${JSON.stringify(s.answer)}`
+							? `最终结果：${terminalValue(s.answer)}`
 							: "";
 				},
 			});

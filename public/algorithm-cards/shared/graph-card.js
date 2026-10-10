@@ -1,3 +1,5 @@
+import { terminalValue } from "./monitor-terminal.js";
+import { sampleBounds, reserveSample } from "./sample-layout.js";
 import { stateValue } from "./state-value.js";
 import { cardTemplate, mountCard, escapeHtml, problemNotes, resolveNotes } from "./card-ui.js";
 import { problemBadges } from "../problems/meta.js";
@@ -27,11 +29,20 @@ export function graphCard({
 	return {
 		template,
 		mount(root, signal) {
+			let graphHeight, anchors;
 			return mountCard(root, signal, {
 				id: problemId,
 				codes,
 				examples,
 				buildTrace,
+				prepareAnimation(root, steps) {
+					const max = Math.max(...steps.map(s => s.vertices.length));
+					graphHeight = Math.ceil(max / 4) * 100 + 55;
+					const vertices = steps.find(s => s.vertices.length === max).vertices;
+					anchors = new Map((steps.some(s => s.vertexLength) ? [] : vertices).map((id, i) => [id, { x: 60 + (i % 4) * 110, y: 50 + Math.floor(i / 4) * 100 }]));
+					root.getElementById("graph").style.minHeight = `${graphHeight}px`;
+					return reserveSample(root, sampleBounds(steps), { texts: { stage: "text", queue: "queue", result: "answer" } });
+				},
 				formatExample: (e) =>
 					`${e.label} · numCourses=${e.numCourses} · prerequisites=${JSON.stringify(e.prerequisites)}`,
 				getVariables: (s) =>
@@ -46,7 +57,7 @@ export function graphCard({
 					const positions = new Map(
 						s.vertices.map((id, i) => [
 							id,
-							{ x: 60 + (i % 4) * 110, y: 50 + Math.floor(i / 4) * 100 },
+							anchors.get(id) ?? { x: 60 + (i % 4) * 110, y: 50 + Math.floor(i / 4) * 100 },
 						]),
 					);
 					const edges = s.edges
@@ -62,7 +73,7 @@ export function graphCard({
 						})
 						.join("");
 					root.getElementById("graph").innerHTML =
-						` ${s.vertexLength ? `<p>共 ${s.vertexLength} 个节点，仅显示当前相关节点；${s.edgesOmitted} 条其他边省略。</p>` : ""}<svg role="img" aria-label="课程依赖有向图" width="470" height="${Math.ceil(s.vertices.length / 4) * 100 + 55}"><defs><marker id="edge-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#78b9ec"/></marker></defs>${edges}${s.vertices
+						` ${s.vertexLength ? `<p>共 ${s.vertexLength} 个节点，仅显示当前相关节点；${s.edgesOmitted} 条其他边省略。</p>` : ""}<svg role="img" aria-label="课程依赖有向图" width="470" height="${graphHeight}"><defs><marker id="edge-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="#78b9ec"/></marker></defs>${edges}${s.vertices
 							.map((id) => {
 								const p = positions.get(id),
 									done = s.completedNodes?.includes(id);
@@ -72,7 +83,7 @@ export function graphCard({
 					root.getElementById("queue").textContent =
 						`待处理队列（头 → 尾）：${s.queue === null ? "尚未创建" : JSON.stringify(s.queue)}${s.queueOmitted ? `（省略 ${s.queueOmitted} 项）` : ""}`;
 					root.getElementById("result").textContent = s.final
-						? `最终结果：${JSON.stringify(s.answer)}`
+						? `最终结果：${terminalValue(s.answer)}`
 						: "";
 				},
 			});

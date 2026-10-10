@@ -1,3 +1,5 @@
+import { mountProblemDivider } from './problem-divider.js';
+import { sampleLayoutStyles } from "./sample-layout.js";
 import baseTemplate from "./base-template.js";
 import { mountDropdown } from "./dropdown.js";
 import { decorateCodes } from "./code-ideas.js";
@@ -148,7 +150,7 @@ export function problemNotes(notes) {
   return `<div class="constraint original-row"><div class="problem-notes">${body}</div><button id="reveal" class="original-cue" aria-expanded="false" aria-controls="solution">展开解答</button></div>`;
 }
 
-const stateStyles = `<style>
+const stateStyles = sampleLayoutStyles + `<style>
 .workbench{padding:18px 0 14px}.workbench h4{margin-bottom:12px}
 .work-vars{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .work-var{display:block;padding:12px 14px;background:#222530;border:1px solid #333746;border-radius:10px;transition:background .2s,border-color .2s}
@@ -199,6 +201,7 @@ export function mountCard(
     examples,
     buildTrace,
     renderAnimation,
+    prepareAnimation,
     getVariables = (step) => step.variables,
     formatExample,
     onExampleChange,
@@ -210,6 +213,7 @@ export function mountCard(
   const $ = (id) => root.getElementById(id);
   // 首次轨迹由 updateExample 创建，避免初始化时重复计算同一份样本。
   let steps = [];
+  let clearAnimationLayout;
   let current = 0;
   let disposed = false;
   let expanded = false;
@@ -397,11 +401,18 @@ export function mountCard(
   });
   listen(reveal, "focus", syncReveal);
   listen(reveal, "blur", syncReveal);
+  const divider = mountProblemDivider(root.host, signal, () => {
+    if ($("solution").hidden) return;
+    reveal.click();
+    reveal.focus({ preventScroll: true });
+    root.host.scrollIntoView({ block: "start", behavior: "instant" });
+  });
   listen(reveal, "click", () => {
     const opening = $("solution").hidden;
     $("solution").hidden = !opening;
     $("reveal").setAttribute("aria-expanded", String(opening));
     root.host.setAttribute("data-solution-open", String(opening));
+    divider.setOpen(opening);
     $("reveal").textContent = opening ? "收起解答" : "展开解答";
     if (opening) switchView("code");
     else {
@@ -413,6 +424,8 @@ export function mountCard(
     const example = examples[Number(selector.value)];
     steps = buildTrace(example);
     if (!steps?.length) throw new Error("执行轨迹不能为空");
+    clearAnimationLayout?.();
+    clearAnimationLayout = prepareAnimation?.(root, steps, example);
     onExampleChange?.(root, example, Number(selector.value));
     go(0);
   }
@@ -477,6 +490,7 @@ export function mountCard(
   updateExample();
   return () => {
     disposed = true;
+    clearAnimationLayout?.();
     clearTimeout(copyTimer);
   };
 }

@@ -1,0 +1,84 @@
+---
+import { Icon } from "astro-icon/components";
+import { navbarPlaylist } from "../../config/musicConfig";
+import { url } from "../../utils/url-utils";
+
+const tracks = navbarPlaylist.map((track) => ({
+	...track,
+	url: track.url
+		? /^(https?:)?\/\//.test(track.url)
+			? track.url
+			: url(track.url)
+		: "",
+	cover: track.cover
+		? /^(https?:)?\/\//.test(track.cover)
+			? track.cover
+			: url(track.cover)
+		: "",
+}));
+---
+<div class="navbar-music" data-tracks={JSON.stringify(tracks)}>
+ <button class="music-trigger btn-plain scale-animation" aria-label="播放音乐" title="播放音乐" aria-controls="navbar-music-panel" aria-expanded="false">
+  <span data-play><Icon name="material-symbols:play-arrow-rounded" /></span>
+  <span data-stop hidden><Icon name="material-symbols:stop-rounded" /></span>
+ </button>
+ <section id="navbar-music-panel" class="music-panel" aria-label="音乐歌单">
+  <img class="music-art" src={tracks[0]?.cover} alt="" />
+  <div class="music-shade"></div>
+  <div class="music-info">
+   <h3 data-title title={tracks[0]?.name}>{tracks[0]?.name}</h3><p data-artist>{tracks[0]?.artist}</p>
+   <div class="music-progress"><span data-time>0:00</span><input type="range" min="0" max="0" step="0.1" value="0" aria-label="音乐播放进度" disabled /></div>
+   <p class="music-status" role="status">尚未提供音频</p>
+  </div>
+  <div class="music-list" role="group" aria-label="选择歌曲">
+   {tracks.map((track,index)=><button class="music-track" data-index={index} title={track.name} aria-pressed={index===0}>{track.name}</button>)}
+  </div>
+ </section>
+</div>
+<style>
+.navbar-music{position:relative;display:flex;align-items:center;flex:none;--music-ink:#252330}:global(.dark) .navbar-music{--music-ink:#e6e1ed}
+.music-trigger{width:2.75rem;height:2.75rem;border-radius:.75rem;display:flex;align-items:center;justify-content:center}.music-trigger span{width:1.75rem;height:1.75rem}.music-trigger span[hidden]{display:none}.music-trigger :global(svg){width:100%;height:100%}
+.music-panel{display:none;position:absolute;top:100%;right:0;width:360px;max-width:calc(100vw - 24px);height:222px;box-sizing:border-box;overflow:hidden;border-radius:16px;border:1px solid color-mix(in srgb,var(--primary) 18%,transparent);background:var(--card-bg);box-shadow:0 14px 40px #0003;isolation:isolate;color:var(--music-ink)}
+.navbar-music[data-open="true"] .music-panel{display:block}
+.music-art,.music-shade{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}.music-art{width:61%;mask-image:linear-gradient(to right,#000 64%,transparent)}.music-shade{z-index:-1;background:linear-gradient(0deg,#0008,transparent 65%);width:57%;mask-image:linear-gradient(to right,#000 64%,transparent)}
+.music-info{position:absolute;left:20px;bottom:20px;width:155px;color:white;text-shadow:0 1px 6px #0009}.music-info h3{font-size:18px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:0}.music-info p{font-size:11px;margin:4px 0 0}.music-progress{display:flex;flex-direction:column;gap:7px;margin-top:12px;font-size:10px}.music-progress input{appearance:none;height:6px;width:100%;border-radius:8px;background:linear-gradient(to right,#d9c3ff var(--played,0%),#ffffff45 var(--played,0%));margin:0}.music-progress input::-webkit-slider-thumb{appearance:none;width:12px;height:12px;border-radius:50%;background:#e7d7ff}.music-progress input::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:#e7d7ff}.music-info .music-status{font-size:10px;min-height:14px}
+.music-list{position:absolute;right:10px;top:13px;height:194px;width:155px;overflow-y:auto;padding:72px 0;box-sizing:border-box;scroll-snap-type:y proximity;overscroll-behavior:contain;scrollbar-width:none;mask-image:linear-gradient(to bottom,transparent,#000 22%,#000 78%,transparent)}
+.music-track{display:block;width:100%;height:50px;border:0;background:none;text-align:left;font-size:16px;padding:0 6px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;scroll-snap-align:center;color:var(--music-ink);opacity:.55;transform:scale(.93);transform-origin:left center;transition:opacity .15s,transform .15s}.music-track[data-focused="true"]{opacity:1;transform:scale(1)}.music-track[aria-pressed="true"]{color:var(--primary);font-weight:600}.music-track:focus-visible{outline:2px solid var(--primary);outline-offset:-3px;border-radius:6px}
+@media(max-width:480px){.music-panel{position:fixed;right:12px;top:72px}.music-info{left:14px;width:43%}.music-list{width:43%}}
+@media(prefers-reduced-motion:reduce){.music-track{transition:none;transform:none!important}}
+</style>
+<script>
+import { MusicSession } from './music-session.mjs';
+import { mountMusicPopup } from './music-popup.mjs';
+import type { Track } from './music-session.mjs';
+const host=document.querySelector<HTMLElement>('.navbar-music');
+if(host && !host.dataset.mounted){
+ host.dataset.mounted='true';
+ const tracks:Track[]=JSON.parse(host.dataset.tracks||'[]');
+ // Navbar is outside Swup's main/toc containers: one session per document,
+ // independent of article swaps, with no navigation-time listener registration.
+ const audio=new Audio();audio.preload='metadata';
+ const session=new MusicSession(audio,tracks);
+ const trigger=host.querySelector<HTMLButtonElement>('.music-trigger')!;
+ const range=host.querySelector<HTMLInputElement>('input')!;
+ const list=host.querySelector<HTMLElement>('.music-list')!;
+ const buttons=Array.from(host.querySelectorAll<HTMLButtonElement>('.music-track'));
+ const focus=()=>{const middle=list.scrollTop+list.clientHeight/2;let nearest=0,distance=Infinity;buttons.forEach((button,index)=>{const diff=Math.abs(button.offsetTop+button.offsetHeight/2-middle);if(diff<distance){distance=diff;nearest=index;}});buttons.forEach((button,index)=>button.dataset.focused=String(index===nearest));};
+ const center=(button:HTMLElement)=>{list.scrollTo({top:button.offsetTop+button.offsetHeight/2-list.clientHeight/2,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});};
+ const render=()=>{const state=session.state,track=tracks[state.index];if(!track)return;
+ trigger.setAttribute('aria-label',state.playing?'停止音乐':'播放音乐');trigger.title=state.playing?'停止音乐':'播放音乐';
+ host.querySelector<HTMLElement>('[data-play]')!.hidden=state.playing;host.querySelector<HTMLElement>('[data-stop]')!.hidden=!state.playing;
+ const title=host.querySelector<HTMLElement>('[data-title]')!;title.textContent=track.name;title.title=track.name;
+ host.querySelector<HTMLElement>('[data-artist]')!.textContent=track.artist||'';
+ host.querySelector<HTMLImageElement>('.music-art')!.src=track.cover||'';
+ host.querySelector<HTMLElement>('[data-time]')!.textContent=`${Math.floor(state.time/60)}:${Math.floor(state.time%60).toString().padStart(2,'0')}`;
+ range.max=String(state.duration);range.value=String(state.time);range.disabled=!state.duration;range.style.setProperty('--played',`${state.duration?state.time/state.duration*100:0}%`);
+ host.querySelector<HTMLElement>('.music-status')!.textContent=!track.url?'尚未提供音频':({loading:'正在加载…',error:'音频加载或播放失败',paused:'已停止',playing:'',idle:''} as Record<string,string>)[state.status]||'';
+ buttons.forEach((button,index)=>button.setAttribute('aria-pressed',String(index===state.index)));
+ };
+ trigger.onclick=()=>{void session.toggle();};range.oninput=()=>session.seek(Number(range.value));
+ buttons.forEach((button,index)=>{button.onclick=()=>{void session.select(index);center(button);};button.onkeydown=event=>{if(event.key==='ArrowDown'||event.key==='ArrowUp'){event.preventDefault();const next=(index+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;buttons[next].focus();center(buttons[next]);}};});
+ list.onscroll=focus;mountMusicPopup(host,trigger,document,focus);
+ session.addEventListener('change',render);render();
+}
+</script>
