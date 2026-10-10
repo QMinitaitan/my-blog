@@ -34,6 +34,20 @@ function circles(html) {
   return [...html.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)"/g)].map(m => [Number(m[1]), Number(m[2])]);
 }
 
+test('rewiring an asymmetric tree keeps its unchanged root anchored', async () => {
+  const problem = await import('../public/algorithm-cards/problems/226.js');
+  const example = {input:[1,2,null,3]}, steps = problem.buildTrace(example);
+  const {config, root} = await renderer('shared/tree-card.js', 'treeCard', {title:'226. tree',codes:[],examples:[example],buildTrace:problem.buildTrace});
+  config.prepareAnimation(root, steps);
+  const rootXs = [];
+  for (const step of steps) {
+    config.renderAnimation(root, step, example);
+    const nodes = [...root.getElementById('tree').innerHTML.matchAll(/<g><circle cx="([\d.]+)" cy="([\d.]+)"[\s\S]*?<text[^>]*>([^<]+)<\/text>/g)];
+    rootXs.push(Number(nodes.find(m => m[3] === '1')[1]));
+  }
+  assert.equal(new Set(rootXs).size, 1, 'unchanged root must not drift while its children swap');
+});
+
 test('inversion and flattening render the current topology inside fixed bounds', async () => {
   for (const id of [226, 114]) {
     const problem = await import(`../public/algorithm-cards/problems/${id}.js`);

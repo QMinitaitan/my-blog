@@ -109,6 +109,23 @@ export function treeLayout(steps) {
   width = Math.max(width, (index + 1) * 56);
   height = Math.max(height, (depthMax + 1) * 70);
  }
+ if (topologyChanges) {
+  // Align every topology to one root anchor, reserving both left and right
+  // extents across the sample rather than recentering after a child swap.
+  let left = 0, right = 0;
+  for (const [tree, placed] of positionsByTree) {
+   const rootX = placed.get(tree?.id)?.x ?? 0;
+   for (const point of placed.values()) {
+    left = Math.min(left, point.x - rootX);
+    right = Math.max(right, point.x - rootX);
+   }
+  }
+  for (const [tree, placed] of positionsByTree) {
+   const offset = 56 - left - (placed.get(tree?.id)?.x ?? 0);
+   for (const point of placed.values()) point.x += offset;
+  }
+  width = right - left + 112;
+ }
  return { positions, width, height, positionsByTree: topologyChanges ? positionsByTree : null };
 }
 export function listLayout(steps) {
